@@ -1,0 +1,635 @@
+.indicacoes-container {
+    display: flex;
+    flex-wrap: wrap; /* Permite que as seções quebrem em telas menores */
+    gap: 30px;
+    margin-top: 20px;
+}
+
+.form-indicacao-section,
+.lista-indicacoes-section {
+    background-color: var(--white-color);
+    padding: 25px;
+    border-radius: var(--button-border-radius, 8px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.form-indicacao-section {
+    flex: 1 1 400px; /* Ocupa mais espaço ou uma base de 400px */
+    min-width: 300px;
+}
+
+.lista-indicacoes-section {
+    flex: 2 1 500px; /* Tenta ocupar mais espaço, base de 500px */
+    min-width: 320px;
+}
+
+.form-indicacao-section h2,
+.lista-indicacoes-section h2 {
+    color: var(--primary-color);
+    margin-top: 0;
+    margin-bottom: 20px;
+    border-bottom: 1px solid var(--gray-light);
+    padding-bottom: 10px;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 500;
+    color: var(--text-color-light);
+}
+
+.form-group input[type="text"],
+.form-group input[type="tel"],
+.form-group input[type="email"],
+.form-group textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: var(--button-border-radius, 4px);
+    box-sizing: border-box;
+    font-size: 0.95em;
+}
+
+.form-group textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+.form-message {
+    margin-bottom: 15px;
+    padding: 10px;
+    border-radius: 4px;
+    font-size: 0.9em;
+    display: none; /* Oculto por padrão */
+}
+.form-message.success {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+    display: block;
+}
+.form-message.error {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+    display: block;
+}
+
+.btn-primary { /* Estilo para o botão de salvar */
+    background-color: var(--primary-color);
+    color: var(--white-color);
+    padding: 10px 20px;
+    border: none;
+    border-radius: var(--button-border-radius, 5px);
+    cursor: pointer;
+    font-size: 1em;
+    transition: var(--primary-color-dark) 0.2s ease;
+}
+.btn-primary:hover {
+    background-color: var(--primary-color-dark);
+}
+
+.indicacoes-grid {
+    /* Se quiser um grid para as indicações listadas */
+     display: grid; 
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); 
+    gap: 15px; 
+}
+
+.indicacao-card {
+    background-color: var(--gray-lightest, #f9f9f9);
+    border: 1px solid var(--gray-border, #e0e0e0);
+    padding: 15px;
+    border-radius: var(--button-border-radius, 5px);
+    margin-bottom: 15px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.indicacao-card h3 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    font-size: 1.2em;
+    color: var(--primary-color);
+}
+
+.indicacao-card p {
+    margin-bottom: 8px;
+    font-size: 0.9em;
+    line-height: 1.4;
+}
+.indicacao-card p strong {
+    color: var(--text-color);
+}
+
+.indicacao-actions button {
+    background-color: transparent;
+    border: 1px solid var(--secondary-color, #e74c3c);
+    color: var(--secondary-color, #e74c3c);
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.85em;
+    margin-top: 10px;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+.indicacao-actions button:hover {
+    background-color: var(--secondary-color, #e74c3c);
+    color: var(--white-color);
+}
+
+/* Adicionar/Ajustar em css/indicacoes-style.css */
+
+.actions-bar {
+    margin-bottom: 25px;
+    text-align: right;
+}
+
+.actions-bar .btn-primary {
+    font-size: 1em;
+    padding: 10px 20px;
+}
+.actions-bar .btn-primary i {
+    margin-right: 8px;
+}
+
+.lista-documentos-section h2 { /* Reutilizando estilo se já existir */
+    color: var(--primary-color);
+    margin-top: 0;
+    margin-bottom: 20px;
+    border-bottom: 1px solid var(--gray-light);
+    padding-bottom: 10px;
+}
+
+.documentos-grid { /* Similar ao indicacoes-grid */
+    display: grid; 
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); 
+    gap: 20px; 
+}
+
+.documento-card { /* Similar ao indicacao-card */
+    background-color: var(--gray-lightest, #f9f9f9);
+    border: 1px solid var(--gray-border, #e0e0e0);
+    padding: 20px;
+    border-radius: var(--button-border-radius, 5px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.documento-card h3 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    font-size: 1.3em;
+    color: var(--primary-color);
+}
+.documento-card .doc-uid {
+    font-size: 0.8em;
+    color: #777;
+    margin-bottom: 10px;
+    word-break: break-all;
+}
+
+.documento-card p {
+    margin-bottom: 8px;
+    font-size: 0.9em;
+    line-height: 1.4;
+}
+.documento-card p strong {
+    color: var(--text-color);
+}
+
+.documento-actions {
+    margin-top: 15px;
+    display: flex;
+    flex-wrap: wrap; /* Permite que os botões quebrem a linha se não couberem */
+    gap: 10px;
+    justify-content: flex-start; /* Alinha botões à esquerda */
+}
+.documento-actions .btn,
+.documento-actions button {
+    padding: 8px 12px; /* Aumenta um pouco o padding */
+    font-size: 0.85em;
+    text-decoration: none;
+    border-radius: var(--button-border-radius, 4px);
+    cursor: pointer;
+    transition: opacity 0.2s ease;
+}
+.documento-actions .btn:hover,
+.documento-actions button:hover {
+    opacity: 0.85;
+}
+.btn-info { background-color: var(--info-color, #3498db); color:white; border:none;}
+.btn-success { background-color: var(--success-color, #2ecc71); color:white; border:none;}
+.btn-primary { /* Já definido, mas pode ser usado aqui também */
+    background-color: var(--primary-color); color:white; border:none;
+}
+.btn-edit {
+    background-color: var(--info-color, #3498db);
+    color: white;
+    border:none;
+}
+.btn-delete { background-color: var(--danger-color, #e74c3c); color:white; border:none;}
+
+
+.documento-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 5px;
+}
+
+.documento-card-header .documento-nome {
+    margin-top: 0;
+    margin-bottom: 0; /* Ajustado para alinhar com o botão */
+    font-size: 1.3em;
+    color: var(--primary-color);
+    flex-grow: 1; /* Permite que o nome ocupe o espaço */
+}
+
+.btn-edit-nome {
+    background: none;
+    border: none;
+    color: var(--text-color-light);
+    cursor: pointer;
+    padding: 5px;
+    font-size: 0.9em;
+}
+.btn-edit-nome:hover {
+    color: var(--primary-color);
+}
+
+.actions-bar .btn.disabled,
+.form-actions button.disabled { /* Estilo para botões desabilitados durante o carregamento */
+    opacity: 0.7;
+    pointer-events: none;
+}
+.actions-bar .btn i,
+.form-actions button i {
+    margin-right: 8px;
+}
+
+.documento-actions button[disabled] {
+    background-color: #ccc;
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+.documento-actions button[disabled]:hover {
+    opacity: 0.7;
+}
+
+.tabela-valores-container {
+    margin-top: 15px;
+    margin-bottom: 20px;
+    overflow-x: auto; /* Para rolagem horizontal em telas pequenas */
+}
+.tabela-valores-container table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9em;
+}
+.tabela-valores-container th, 
+.tabela-valores-container td {
+    border: 1px solid #ddd;
+    padding: 8px 10px;
+    text-align: left;
+    vertical-align: middle;
+}
+.tabela-valores-container th {
+    background-color: #f2f2f2;
+    font-weight: 600;
+}
+
+/* Adicionar ao seu arquivo CSS, por exemplo, css/indicacoes-style.css */
+.tabela-valores-container tbody tr.item-oculto {
+    opacity: 0.6; /* Torna o item visualmente menos destacado */
+}
+
+.tabela-valores-container tbody tr.item-oculto td {
+    /* Pode adicionar outros estilos, como cor de fundo mais clara */
+    background-color: #f9f9f9;
+}
+
+.tabela-valores-container .btn-toggle-visibility {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.8rem;
+}
+.tabela-valores-container .btn-toggle-visibility .fas {
+    margin-right: 4px;
+}
+
+.tabela-valores-container input[type="number"],
+.tabela-valores-container input[type="text"] {
+    width: 100%; /* Ocupa a célula */
+    padding: 6px;
+    font-size: 1em; /* Herda o tamanho da fonte da tabela */
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    box-sizing: border-box;
+}
+.tabela-valores-container input[readonly] {
+    background-color: #f9f9f9;
+    border-color: #eee;
+    color: #777;
+}
+.edit-icon-parceiro, .edit-icon-publico {
+    font-size: 0.8em;
+    color: #007bff; /* Azul para indicar editável */
+    margin-left: 5px;
+}
+.edit-icon-parceiro {
+    color: #28a745; /* Verde para campos do parceiro */
+}
+
+.readonly-info {
+    font-size: 0.85em;
+    color: #6c757d;
+    margin-top: 5px;
+    display: block;
+}
+
+#formDocumentoIndicacao h4 { /* Para o título "Tabela de Valores" */
+    font-size: 1.1em;
+    color: var(--primary-color);
+    margin-top: 25px;
+    margin-bottom: 10px;
+}
+
+/* Estilos para o formulário em formulario-indicacao.php */
+#formDocumentoIndicacao h2, #formDocumentoIndicacao h3 {
+    color: var(--primary-color);
+    margin-top: 30px;
+    margin-bottom: 15px;
+    padding-bottom: 5px;
+    border-bottom: 1px solid var(--gray-light);
+}
+#formDocumentoIndicacao h3 {
+    font-size: 1.2em;
+    margin-top: 20px;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 15px 20px; /* gap vertical e horizontal */
+    margin-bottom: 20px;
+}
+.form-group.full-width {
+    grid-column: 1 / -1; /* Faz o campo ocupar todas as colunas */
+}
+
+#formDocumentoIndicacao .form-actions {
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid var(--gray-light);
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+#formDocumentoIndicacao .form-actions .btn {
+    padding: 10px 20px;
+}
+.btn-success { background-color: var(--success-color, #2ecc71); color:white; border:none;}
+.btn-info { background-color: var(--info-color, #3498db); color:white; border:none;}
+/* Estilos para a Seção de Filtros */
+.filtros-documentos-section {
+    background-color: #f9f9f9;
+    padding: 20px;
+    border-radius: var(--button-border-radius, 8px);
+    margin-bottom: 25px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+.filtros-documentos-section h2 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    font-size: 1.4em;
+    color: var(--primary-color);
+}
+.filtros-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    align-items: flex-end; /* Alinha itens na base, útil para botões */
+}
+.filtro-item {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1; /* Permite que os itens cresçam */
+    min-width: 200px; /* Largura mínima para cada filtro */
+}
+.filtro-item label {
+    margin-bottom: 5px;
+    font-weight: 500;
+    font-size: 0.9em;
+    color: var(--text-color-light);
+}
+.filtro-item input[type="text"],
+.filtro-item input[type="date"],
+.filtro-item select {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: var(--button-border-radius, 4px);
+    font-size: 0.95em;
+    width: 100%; /* Ocupa todo o espaço do .filtro-item */
+    box-sizing: border-box;
+}
+.filtro-item-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center; /* Alinha botões verticalmente se houver quebra de linha */
+    padding-top: 20px; /* Espaço acima dos botões se não houver label */
+}
+.filtro-item-actions .btn {
+    padding: 10px 15px;
+    font-size: 0.9em;
+}
+.filtro-item-actions .btn i {
+    margin-right: 6px;
+}
+.btn-secondary { /* Se não existir, defina-o */
+    background-color: var(--secondary-color, #6c757d);
+    color: white;
+    border: none;
+}
+.btn-secondary:hover {
+    background-color: var(--secondary-color-dark, #5a6268);
+}
+.btn-outline { /* Exemplo de botão outline */
+    background-color: transparent;
+    color: var(--primary-color);
+    border: 1px solid var(--primary-color);
+}
+.btn-outline:hover {
+    background-color: var(--primary-color-light, #f0f0ff);
+}
+
+
+/* Estilos para a Tabela de Documentos */
+.table-responsive {
+    overflow-x: auto; /* Permite rolagem horizontal em telas pequenas */
+    width: 100%;
+}
+.documentos-tabela {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px; /* Espaço acima da tabela */
+    font-size: 0.9em;
+}
+.documentos-tabela th,
+.documentos-tabela td {
+    border: 1px solid #ddd;
+    padding: 10px 12px;
+    text-align: left;
+    vertical-align: middle;
+}
+.documentos-tabela th {
+    background-color: #f2f2f2;
+    font-weight: 600;
+    color: var(--text-color);
+}
+.documentos-tabela tbody tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+.documentos-tabela tbody tr:hover {
+    background-color: #f1f1f1;
+}
+
+/* Estilos para a célula de Ações e o Menu Dropdown */
+.documentos-tabela .acoes-cell {
+    text-align: center; /* Centraliza o botão de reticências */
+}
+.acoes-menu {
+    position: relative;
+    display: inline-block;
+}
+.acoes-menu .btn-acoes {
+    background: none;
+    border: none;
+    color: var(--text-color-light, #555);
+    padding: 8px;
+    cursor: pointer;
+    font-size: 1.1em; /* Tamanho do ícone */
+    border-radius: 4px;
+}
+.acoes-menu .btn-acoes:hover,
+.acoes-menu .btn-acoes[aria-expanded="true"] {
+    background-color: #e0e0e0;
+    color: var(--primary-color);
+}
+.acoes-dropdown {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: 100%; /* Posiciona abaixo do botão */
+    background-color: white;
+    min-width: 200px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.15);
+    z-index: 100;
+    border: 1px solid #ccc;
+    border-radius: var(--button-border-radius, 4px);
+    padding: 5px 0;
+}
+.acoes-dropdown .btn-acao-dropdown {
+    display: block;
+    width: 100%;
+    padding: 10px 15px;
+    text-align: left;
+    font-size: 0.9em;
+    color: var(--text-color);
+    background: none;
+    border: none;
+    cursor: pointer;
+    text-decoration: none; /* Para links <a> */
+}
+.acoes-dropdown .btn-acao-dropdown i {
+    margin-right: 10px;
+    width: 16px; /* Alinhamento dos ícones */
+    text-align: center;
+    color: var(--text-color-light);
+}
+.acoes-dropdown .btn-acao-dropdown:hover {
+    background-color: #f0f0f0;
+    color: var(--primary-color);
+}
+.acoes-dropdown .btn-acao-dropdown:hover i {
+    color: var(--primary-color);
+}
+
+/* Estilos para status dos documentos na tabela */
+.status-doc {
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 0.85em;
+    font-weight: 500;
+    color: white;
+    white-space: nowrap;
+}
+.status-pendente-de-preenchimento { background-color: #ffc107; color: #333; } /* Amarelo */
+.status-em-análise, .status-em-analise { background-color: #17a2b8; } /* Azul Info */
+.status-aguardando-cliente { background-color: #fd7e14; } /* Laranja */
+.status-concluído, .status-concluido { background-color: #28a745; } /* Verde Sucesso */
+.status-aprovado { background-color: #20c997; } /* Verde Água */
+.status-rejeitado { background-color: #dc3545; } /* Vermelho Perigo */
+.status-default { background-color: #6c757d; } /* Cinza Secundário */
+
+/* Mensagem temporária de feedback */
+.temp-message {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 12px 20px;
+    border-radius: 5px;
+    z-index: 10000;
+    font-size: 0.95em;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+.temp-message.success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+.temp-message.error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+.temp-message.info { background-color: #cce5ff; color: #004085; border: 1px solid #b8daff; }
+
+/* Responsividade para filtros e tabela */
+@media (max-width: 768px) {
+    .filtros-container {
+        flex-direction: column;
+        align-items: stretch; /* Faz os itens ocuparem a largura total */
+    }
+    .filtro-item {
+        min-width: 100%; /* Ocupa toda a largura */
+    }
+    .filtro-item-actions {
+        flex-direction: column; /* Empilha os botões de filtro */
+        width: 100%;
+    }
+    .filtro-item-actions .btn {
+        width: 100%;
+        margin-bottom: 10px;
+    }
+    .filtro-item-actions .btn:last-child {
+        margin-bottom: 0;
+    }
+
+    .documentos-tabela th,
+    .documentos-tabela td {
+        padding: 8px 6px; /* Padding menor em telas pequenas */
+        font-size: 0.85em;
+    }
+    .acoes-dropdown {
+        min-width: 180px; /* Ajuste para dropdown em mobile */
+    }
+}
+
+
+@media (max-width: 768px) {
+    .indicacoes-container {
+        flex-direction: column;
+    }
+    .form-indicacao-section,
+    .lista-indicacoes-section {
+        flex-basis: auto; /* Reseta a base flex para empilhamento */
+    }
+}

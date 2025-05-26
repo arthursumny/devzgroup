@@ -1,0 +1,123 @@
+/* Estilos para os Dashboards */
+
+/* Adicionado para corrigir o posicionamento do footer */
+body { /* Aplicar ao body das páginas de dashboard */
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh; /* Altura mínima de 100% da altura da viewport */
+}
+
+.container {
+    width: 90%; /* Ou uma porcentagem similar */
+    max-width: 1140px; /* Um valor que acomode várias caixas */
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 15px; /* Padding lateral razoável */
+    padding-right: 15px;
+    box-sizing: border-box; /* Importante para que o padding não aumente a largura total */
+}
+
+.dashboard-main {
+    padding-top: 30px;
+    padding-bottom: 40px;
+    flex-grow: 1; /* Faz o conteúdo principal expandir e empurrar o footer */
+}
+
+.dashboard-main h1 {
+    color: var(--primary-color);
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+.dashboard-subtitle {
+    text-align: center;
+    color: var(--text-color-light);
+    margin-bottom: 40px;
+    font-size: 1.1em;
+}
+
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); /* Cria colunas responsivas */
+    gap: 25px; /* Espaço entre as caixas */
+    margin-top: 20px;
+}
+
+.dashboard-box {
+    background-color: var(--white-color);
+    padding: 25px;
+    border-radius: var(--button-border-radius, 8px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    text-decoration: none;
+    color: var(--text-color);
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Centraliza o conteúdo da caixa */
+    text-align: center;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.dashboard-box:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+}
+
+.dashboard-box-icon {
+    font-size: 3em; /* Tamanho do ícone */
+    color: var(--primary-color);
+    margin-bottom: 20px;
+}
+
+.dashboard-box-title {
+    font-size: 1.4em;
+    color: var(--primary-color-dark, #22303d); /* Um tom mais escuro da cor primária */
+    margin-top: 0;
+    margin-bottom: 10px;
+}
+
+.dashboard-box-description {
+    font-size: 0.95em;
+    color: var(--text-color-light, #555);
+    line-height: 1.5;
+}
+
+/* Estilos para o header do dashboard */
+.main-header .main-nav ul {
+    display: flex;
+    align-items: center;
+}
+
+.main-header .main-nav .welcome-message {
+    margin-right: 20px;
+    color: var(--text-color);
+    font-size: 0.95em; 
+}
+
+/* TORNANDO O SELETOR MAIS ESPECÍFICO */
+.main-header .main-nav ul li a.btn-logout { 
+    background-color: var(--secondary-color, #e74c3c); 
+    color: var(--white-color) !important; /* Mantendo !important para garantir a cor do texto, se necessário */
+    padding: 10px 25px; /* 10px para cima/baixo, 25px para esquerda/direita */
+    border-radius: var(--button-border-radius, 5px);
+    text-decoration: none;
+    font-weight: 500;
+    transition: background-color 0.2s ease, transform 0.2s ease;
+    border: none; 
+    line-height: 1.2; 
+    display: inline-block; 
+    /* Resetar outros paddings que possam vir de .main-nav ul li a {} se necessário */
+    margin: 0; /* Exemplo de reset, ajuste se a regra genérica adicionar margens */
+}
+
+.main-header .main-nav ul li a.btn-logout:hover { /* Seletor de hover também precisa ser específico */
+    background-color: var(--secondary-color-dark, #c0392b);
+    transform: translateY(-1px); 
+}
+
+/* Ajustes no footer para dashboards */
+.main-footer {
+    background-color: var(--text-color);
+    color: var(--light-text-color);
+    padding: 20px 0;
+    text-align: center;
+}
