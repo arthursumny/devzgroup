@@ -16,7 +16,9 @@ $parceiroId = $_SESSION['user_id'];
     <link rel="stylesheet" href="css/dashboard-style.css">
     <link rel="stylesheet" href="css/indicacoes-style.css"> 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pizzip/3.1.4/pizzip.min.js"></script>
+    <!-- Include PizZip -->
+    <script src="https://cdn.jsdelivr.net/npm/pizzip@3.1.0/dist/pizzip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pizzip-utils/0.0.5/pizzip-utils.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/docxtemplater/3.38.0/docxtemplater.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
 </head>
