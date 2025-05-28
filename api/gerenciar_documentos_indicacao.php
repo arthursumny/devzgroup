@@ -430,25 +430,42 @@ switch ($action) {
             $stmt->close(); $conn->close();
             break;
     
-    case 'get_documento_details_public': // Usado por formulario-indicacao.php
-        $documento_uid = trim(filter_input(INPUT_GET, 'uid', FILTER_SANITIZE_STRING));
-        if (empty($documento_uid)) {
-            http_response_code(400); echo json_encode(["success" => false, "message" => "UID do documento é obrigatório."]); exit;
-        }
-        $conn = getDbConnection();
-        $stmt = $conn->prepare("SELECT * FROM documentos_indicacao WHERE documento_uid = ?");
-        if (!$stmt) { http_response_code(500); echo json_encode(["success" => false, "message" => "Erro prepare: " . $conn->error]); exit; }
-        $stmt->bind_param("s", $documento_uid);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        $documento = $result->fetch_assoc();
-        if ($documento) {
-            echo json_encode(["success" => true, "data" => $documento]);
-        } else {
-            http_response_code(404); echo json_encode(["success" => false, "message" => "Documento não encontrado."]);
-        }
-        $stmt->close(); $conn->close();
-        break;
+            case 'get_documento_details_public': // Usado por formulario-indicacao.php
+                $documento_uid = trim(filter_input(INPUT_GET, 'uid', FILTER_SANITIZE_STRING));
+                if (empty($documento_uid)) {
+                    http_response_code(400); echo json_encode(["success" => false, "message" => "UID do documento é obrigatório."]); exit;
+                }
+                $conn = getDbConnection();
+                // Modificado para buscar nome do parceiro criador
+                $stmt = $conn->prepare(
+                    "SELECT d.*, u.nome_completo as nome_parceiro_criador, u.username as username_parceiro_criador " .
+                    "FROM documentos_indicacao d " .
+                    "LEFT JOIN usuarios u ON d.parceiro_id = u.id " .
+                    "WHERE d.documento_uid = ?"
+                );
+                if (!$stmt) { http_response_code(500); echo json_encode(["success" => false, "message" => "Erro prepare: " . $conn->error]); $conn->close(); exit; }
+                $stmt->bind_param("s", $documento_uid);
+                $stmt->execute();
+                $result = $stmt->get_result();
+                $documento_data = $result->fetch_assoc();
+            
+                if ($documento_data) {
+                    // Determinar o nome do parceiro criador para o template Word
+                    $nome_final_parceiro_criador = 'Parceiro Devzgroup'; // Valor padrão
+                    if (!empty(trim($documento_data['nome_parceiro_criador']))) {
+                        $nome_final_parceiro_criador = trim($documento_data['nome_parceiro_criador']);
+                    } elseif (!empty(trim($documento_data['username_parceiro_criador']))) {
+                        $nome_final_parceiro_criador = trim($documento_data['username_parceiro_criador']);
+                    }
+                    // Adicionar o nome determinado ao array de dados para ser usado no JS
+                    $documento_data['fetched_decl_resp_pa'] = $nome_final_parceiro_criador;
+            
+                    echo json_encode(["success" => true, "data" => $documento_data]);
+                } else {
+                    http_response_code(404); echo json_encode(["success" => false, "message" => "Documento não encontrado."]);
+                }
+                $stmt->close(); $conn->close();
+                break;
 
     case 'delete_documento':
         if (!$is_parceiro_logado_para_api) {
