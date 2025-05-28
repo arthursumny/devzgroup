@@ -16,6 +16,11 @@ $parceiroId = $_SESSION['user_id'];
     <link rel="stylesheet" href="css/dashboard-style.css">
     <link rel="stylesheet" href="css/indicacoes-style.css"> 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Include PizZip -->
+    <script src="https://cdn.jsdelivr.net/npm/pizzip@3.1.0/dist/pizzip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pizzip-utils/0.0.5/pizzip-utils.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/docxtemplater/3.38.0/docxtemplater.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
 </head>
 <body>
     <header class="main-header">
@@ -40,9 +45,22 @@ $parceiroId = $_SESSION['user_id'];
 
         <section class="lista-documentos-section">
             <h2>Documentos Salvos</h2>
-            <div id="listaDocumentos" class="documentos-grid">
-                <p>Carregando documentos...</p>
-            </div>
+            <table id="listaDocumentosTable" class="table-documentos">
+                <thead>
+                    <tr>
+                        <th>Nome do Documento</th>
+                        <th>Agente Indicador</th>
+                        <th>Status</th>
+                        <th>Criado em</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="listaDocumentosTableBody">
+                    <tr>
+                        <td colspan="5" style="text-align:center;">Carregando documentos...</td>
+                    </tr>
+                </tbody>
+            </table>
         </section>
     </main>
     <footer class="main-footer"><div class="container"><p>Copyright © 2025 Devzgroup.</p></div></footer>
