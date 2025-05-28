@@ -215,7 +215,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (typeof ID_PARCEIRO_LOGADO === 'undefined') {
             alert("Erro: ação não permitida."); return;
         }
-        if (!confirm('Tem certeza que deseja marcar este documento como finalizado por você? ApÃ³s esta ação,não link pÃºblico não poderÃ¡ mais ser editado.')) {
+        if (!confirm('Tem certeza que deseja marcar este documento como finalizado por você? Após esta ação,o link público não poderá mais ser editado.')) {
             return;
         }
         buttonElement.disabled = true;
