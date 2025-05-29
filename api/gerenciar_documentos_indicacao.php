@@ -78,38 +78,38 @@ switch ($action) {
     // Tabela de valores padrão (produtos fixos, valores vazios ou padrão)
     // Adicionado "visivel" => true para cada item
     $tabela_valores_default = json_encode([
-    ["produto" => "Kit PF A3 1 ano + Smart card", "custo_jed" => "97.00", "venda_cliente_final" => "198.00", "sugestao" => "198.00", "visivel" => false],
-    ["produto" => "Kit PF A3 1 anos + Smart card + Leitora", "custo_jed" => "202.00", "venda_cliente_final" => "295.00", "sugestao" => "295.00", "visivel" => false],
-    ["produto" => "Kit PF A3 1 ano + Token", "custo_jed" => "137.00", "venda_cliente_final" => "245.00", "sugestao" => "245.00", "visivel" => false],
-    ["produto" => "Kit PF A3 2 anos + Smart card", "custo_jed" => "117.00", "venda_cliente_final" => "239.00", "sugestao" => "239.00", "visivel" => false],
-    ["produto" => "Kit PF A3 2 anos + Smart card + Leitora", "custo_jed" => "222.00", "venda_cliente_final" => "324.00", "sugestao" => "324.00", "visivel" => false],
-    ["produto" => "Kit PF A3 2 ano + Token", "custo_jed" => "157.00", "venda_cliente_final" => "275.00", "sugestao" => "275.00", "visivel" => false],
-    ["produto" => "Kit PF A3 3 anos + Smart card", "custo_jed" => "127.00", "venda_cliente_final" => "265.00", "sugestao" => "265.00", "visivel" => false],
-    ["produto" => "Kit PF A3 3 anos + Smart card + Leitora", "custo_jed" => "232.00", "venda_cliente_final" => "355.00", "sugestao" => "355.00", "visivel" => false],
-    ["produto" => "Kit PF A3 3 anos + Token", "custo_jed" => "167.00", "venda_cliente_final" => "295.00", "sugestao" => "295.00", "visivel" => false],
-    ["produto" => "PFA3 - SYN 12 Meses (nuvem)", "custo_jed" => "76.00", "venda_cliente_final" => "159.00", "sugestao" => "159.00", "visivel" => false],
-    ["produto" => "Kit PJ A3 1 ano + Smart card", "custo_jed" => "102.00", "venda_cliente_final" => "225.00", "sugestao" => "225.00", "visivel" => false],
-    ["produto" => "Kit PJ A3 1 anos + Smart card + Leitora", "custo_jed" => "207.00", "venda_cliente_final" => "325.00", "sugestao" => "325.00", "visivel" => false],
-    ["produto" => "Kit PJ A3 1 anos + Token", "custo_jed" => "142.00", "venda_cliente_final" => "265.00", "sugestao" => "265.00", "visivel" => false],
-    ["produto" => "Kit PJ A3 2 anos + Smart card", "custo_jed" => "122.00", "venda_cliente_final" => "245.00", "sugestao" => "245.00", "visivel" => false],
-    ["produto" => "Kit PJ A3 2 anos + Smart card + Leitora", "custo_jed" => "227.00", "venda_cliente_final" => "345.00", "sugestao" => "345.00", "visivel" => false],
-    ["produto" => "Kit PJ A3 2 anos + Token", "custo_jed" => "162.00", "venda_cliente_final" => "295.00", "sugestao" => "295.00", "visivel" => false],
-    ["produto" => "Kit PJ A3 3 anos + Smart card", "custo_jed" => "132.00", "venda_cliente_final" => "276.00", "sugestao" => "276.00", "visivel" => false],
-    ["produto" => "Kit PJ A3 3 anos + Smart card + Leitora", "custo_jed" => "237.00", "venda_cliente_final" => "365.00", "sugestao" => "365.00", "visivel" => false],
-    ["produto" => "Kit PJ A3 3 anos + Token", "custo_jed" => "172.00", "venda_cliente_final" => "315.00", "sugestao" => "315.00", "visivel" => false],
-    ["produto" => "PF A1 3 meses", "custo_jed" => "35.00", "venda_cliente_final" => "90.00", "sugestao" => "90.00", "visivel" => false],
-    ["produto" => "PF A1 1 ano", "custo_jed" => "62.00", "venda_cliente_final" => "138.00", "sugestao" => "138.00", "visivel" => false],
-    ["produto" => "PF A3 1 ano", "custo_jed" => "72.00", "venda_cliente_final" => "149.00", "sugestao" => "149.00", "visivel" => false],
-    ["produto" => "PF A3 2 anos", "custo_jed" => "82.00", "venda_cliente_final" => "169.00", "sugestao" => "169.00", "visivel" => false],
-    ["produto" => "PF A3 3 anos", "custo_jed" => "92.00", "venda_cliente_final" => "189.00", "sugestao" => "189.00", "visivel" => false],
-    ["produto" => "PJ A1 3 meses", "custo_jed" => "40.00", "venda_cliente_final" => "110.00", "sugestao" => "110.00", "visivel" => false],
-    ["produto" => "PJ A1 1 ano", "custo_jed" => "67.00", "venda_cliente_final" => "198.00", "sugestao" => "198.00", "visivel" => false],
-    ["produto" => "PJ A3 1 ano", "custo_jed" => "77.00", "venda_cliente_final" => "205.00", "sugestao" => "205.00", "visivel" => false],
-    ["produto" => "PJ A3 2 ano", "custo_jed" => "87.00", "venda_cliente_final" => "215.00", "sugestao" => "215.00", "visivel" => false],
-    ["produto" => "PJ A3 3 anos", "custo_jed" => "97.00", "venda_cliente_final" => "225.00", "sugestao" => "225.00", "visivel" => false],
-    ["produto" => "Smart Card", "custo_jed" => "35.00", "venda_cliente_final" => "65.00", "sugestao" => "65.00", "visivel" => false],
-    ["produto" => "Token", "custo_jed" => "75.00", "venda_cliente_final" => "110.00", "sugestao" => "110.00", "visivel" => false],
-    ["produto" => "Leitora Smart Card", "custo_jed" => "105.00", "venda_cliente_final" => "145.00", "sugestao" => "145.00", "visivel" => false],
+    ["produto" => "Kit PF A3 1 ano + Smart card", "custo_jed" => "97.00", "venda_cliente_final" => "198.00", "visivel" => false],
+    ["produto" => "Kit PF A3 1 anos + Smart card + Leitora", "custo_jed" => "202.00", "venda_cliente_final" => "295.00", "visivel" => false],
+    ["produto" => "Kit PF A3 1 ano + Token", "custo_jed" => "137.00", "venda_cliente_final" => "245.00", "visivel" => false],
+    ["produto" => "Kit PF A3 2 anos + Smart card", "custo_jed" => "117.00", "venda_cliente_final" => "239.00", "visivel" => false],
+    ["produto" => "Kit PF A3 2 anos + Smart card + Leitora", "custo_jed" => "222.00", "venda_cliente_final" => "324.00", "visivel" => false],
+    ["produto" => "Kit PF A3 2 ano + Token", "custo_jed" => "157.00", "venda_cliente_final" => "275.00", "visivel" => false],
+    ["produto" => "Kit PF A3 3 anos + Smart card", "custo_jed" => "127.00", "venda_cliente_final" => "265.00", "visivel" => false],
+    ["produto" => "Kit PF A3 3 anos + Smart card + Leitora", "custo_jed" => "232.00", "venda_cliente_final" => "355.00", "visivel" => false],
+    ["produto" => "Kit PF A3 3 anos + Token", "custo_jed" => "167.00", "venda_cliente_final" => "295.00", "visivel" => false],
+    ["produto" => "PFA3 - SYN 12 Meses (nuvem)", "custo_jed" => "76.00", "venda_cliente_final" => "159.00", "visivel" => false],
+    ["produto" => "Kit PJ A3 1 ano + Smart card", "custo_jed" => "102.00", "venda_cliente_final" => "225.00", "visivel" => false],
+    ["produto" => "Kit PJ A3 1 anos + Smart card + Leitora", "custo_jed" => "207.00", "venda_cliente_final" => "325.00", "visivel" => false],
+    ["produto" => "Kit PJ A3 1 anos + Token", "custo_jed" => "142.00", "venda_cliente_final" => "265.00", "visivel" => false],
+    ["produto" => "Kit PJ A3 2 anos + Smart card", "custo_jed" => "122.00", "venda_cliente_final" => "245.00", "visivel" => false],
+    ["produto" => "Kit PJ A3 2 anos + Smart card + Leitora", "custo_jed" => "227.00", "venda_cliente_final" => "345.00", "visivel" => false],
+    ["produto" => "Kit PJ A3 2 anos + Token", "custo_jed" => "162.00", "venda_cliente_final" => "295.00", "visivel" => false],
+    ["produto" => "Kit PJ A3 3 anos + Smart card", "custo_jed" => "132.00", "venda_cliente_final" => "276.00", "visivel" => false],
+    ["produto" => "Kit PJ A3 3 anos + Smart card + Leitora", "custo_jed" => "237.00", "venda_cliente_final" => "365.00", "visivel" => false],
+    ["produto" => "Kit PJ A3 3 anos + Token", "custo_jed" => "172.00", "venda_cliente_final" => "315.00", "visivel" => false],
+    ["produto" => "PF A1 3 meses", "custo_jed" => "35.00", "venda_cliente_final" => "90.00", "visivel" => false],
+    ["produto" => "PF A1 1 ano", "custo_jed" => "62.00", "venda_cliente_final" => "138.00", "visivel" => false],
+    ["produto" => "PF A3 1 ano", "custo_jed" => "72.00", "venda_cliente_final" => "149.00", "visivel" => false],
+    ["produto" => "PF A3 2 anos", "custo_jed" => "82.00", "venda_cliente_final" => "169.00", "visivel" => false],
+    ["produto" => "PF A3 3 anos", "custo_jed" => "92.00", "venda_cliente_final" => "189.00", "visivel" => false],
+    ["produto" => "PJ A1 3 meses", "custo_jed" => "40.00", "venda_cliente_final" => "110.00", "visivel" => false],
+    ["produto" => "PJ A1 1 ano", "custo_jed" => "67.00", "venda_cliente_final" => "198.00", "visivel" => false],
+    ["produto" => "PJ A3 1 ano", "custo_jed" => "77.00", "venda_cliente_final" => "205.00", "visivel" => false],
+    ["produto" => "PJ A3 2 ano", "custo_jed" => "87.00", "venda_cliente_final" => "215.00", "visivel" => false],
+    ["produto" => "PJ A3 3 anos", "custo_jed" => "97.00", "venda_cliente_final" => "225.00", "visivel" => false],
+    ["produto" => "Smart Card", "custo_jed" => "35.00", "venda_cliente_final" => "65.00", "visivel" => false],
+    ["produto" => "Token", "custo_jed" => "75.00", "venda_cliente_final" => "110.00", "visivel" => false],
+    ["produto" => "Leitora Smart Card", "custo_jed" => "105.00", "venda_cliente_final" => "145.00", "visivel" => false],
     ]);
 
         $stmt = $conn->prepare("INSERT INTO documentos_indicacao (parceiro_id, documento_uid, nome_documento, status_documento, pagamento_tipo, obs_pa_indicacoes, tabela_valores_json, banco_comprovante_path) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
@@ -258,9 +258,6 @@ switch ($action) {
                         if (isset($item_do_formulario['custo_jed'])) {
                             $novo_item_para_salvar['custo_jed'] = filter_var($item_do_formulario['custo_jed'], FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION);
                         }
-                        if (isset($item_do_formulario['sugestao'])) {
-                            $novo_item_para_salvar['sugestao'] = filter_var($item_do_formulario['sugestao'], FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION);
-                        }
                         if (isset($item_do_formulario['visivel'])) {
                             $novo_item_para_salvar['visivel'] = ($item_do_formulario['visivel'] === 'true');
                         } else {
@@ -268,7 +265,6 @@ switch ($action) {
                         }
                     } else {
                         $novo_item_para_salvar['custo_jed'] = $item_bd['custo_jed'] ?? '';
-                        $novo_item_para_salvar['sugestao'] = $item_bd['sugestao'] ?? '';
                         $novo_item_para_salvar['visivel'] = $item_bd['visivel'] ?? true; 
                     }
                 } else {

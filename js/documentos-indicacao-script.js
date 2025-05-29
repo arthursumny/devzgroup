@@ -312,9 +312,6 @@ document.addEventListener('DOMContentLoaded', function() {
                         const vendaClienteFinalInput = row.querySelector(`input[name="tabela_valores[${index}][venda_cliente_final]"]`);
                         if (vendaClienteFinalInput) vendaClienteFinalInput.value = itemData.venda_cliente_final || '';
     
-                        const sugestaoInput = row.querySelector(`input[name="tabela_valores[${index}][sugestao]"]`);
-                        if (sugestaoInput) sugestaoInput.value = itemData.sugestao || '';
-    
                         // Atualizar input hidden de visibilidade
                         const visibilidadeInputHidden = row.querySelector(`input[name="tabela_valores[${index}][visivel]"]`);
                         if (visibilidadeInputHidden) visibilidadeInputHidden.value = itemData.visivel ? 'true' : 'false';
@@ -380,7 +377,6 @@ document.addEventListener('DOMContentLoaded', function() {
             // Campos editáveis apenas pelo parceiro
             if (el.name === 'pagamento_tipo' || el.name === 'obs_pa_indicacoes' || 
                (el.name && el.name.includes('[custo_jed]')) || 
-               (el.name && el.name.includes('[sugestao]')) ||
                el.classList.contains('btn-toggle-visibility')) { // Botão de toggle é restrito ao parceiro
                 if (!IS_PARCEIRO_DONO) {
                     makeReadOnly = true;
@@ -659,8 +655,7 @@ async function gerarDocumentoWord(uid, buttonElement) {
                 .map(item => ({
                     ITEM_PRODUTO_SERVICO: item.produto || '',
                     ITEM_CUSTO_JED: item.custo_jed || '',
-                    ITEM_VENDA_CLIENTE_FINAL: item.venda_cliente_final || '',
-                    ITEM_SUGESTAO_PARCEIRO: item.sugestao || ''
+                    ITEM_VENDA_CLIENTE_FINAL: item.venda_cliente_final || ''
                 }));
         }
 
