@@ -117,16 +117,25 @@ document.addEventListener('DOMContentLoaded', function() {
                     // finalizarBtnHtml = `<button class="btn-action" disabled title="Finalizado pelo Parceiro"><i class="fas fa-check-circle" style="color: green;"></i></button>`;
                 }
 
-                let pdfBtnHtml = `<button class="btn-action btn-baixar-pdf-parceiro" data-uid="${doc.documento_uid}" title="Baixar PDF"><i class="fas fa-file-pdf"></i></button>`;
+                let pdfBtnHtml = '';
+                // Show Baixar PDF button only if a DOCX has been generated (which is a prerequisite for PDF conversion)
+                // and the document status implies it's finalized.
+                if ((doc.status_documento === 'Finalizado pelo Parceiro' || doc.status_documento === 'Assinado') && doc.generated_docx_path) {
+                    pdfBtnHtml = `<button class="btn-action btn-baixar-pdf-parceiro" data-uid="${doc.documento_uid}" title="Baixar PDF"><i class="fas fa-file-pdf"></i></button>`;
+                }
                 
                 let deleteBtnHtml = `<button class="btn-action btn-delete-documento" data-uid="${doc.documento_uid}" title="Excluir Documento"><i class="fas fa-trash"></i></button>`;
                 
-                let gerarWordBtnHtml = '';
-                if (doc.status_documento === 'Finalizado pelo Parceiro' || doc.status_documento === 'Assinado') {
-                    gerarWordBtnHtml = `<button class="btn-action btn-gerar-word" data-uid="${doc.documento_uid}" title="Gerar Documento Word"><i class="fas fa-file-word"></i></button>`;
+                let baixarWordBtnHtml = '';
+                // Condition: Status is 'Finalizado pelo Parceiro' or 'Assinado' AND generated_docx_path is present
+                if ((doc.status_documento === 'Finalizado pelo Parceiro' || doc.status_documento === 'Assinado') && doc.generated_docx_path) {
+                    // Point to the secure download endpoint
+                    const downloadUrl = `api/gerenciar_documentos_indicacao.php?action=download_generated_docx&uid=${doc.documento_uid}`;
+                    // Removed 'download' attribute, kept 'target="_blank"'
+                    baixarWordBtnHtml = `<a href="${downloadUrl}" class="btn-action btn-baixar-word" title="Baixar Word" target="_blank"><i class="fas fa-file-word"></i></a>`;
                 }
                 
-                tdAcoes.innerHTML = viewBtnHtml + " " + finalizarBtnHtml + " " + pdfBtnHtml + " " + deleteBtnHtml + " " + gerarWordBtnHtml;
+                tdAcoes.innerHTML = viewBtnHtml + " " + finalizarBtnHtml + " " + pdfBtnHtml + " " + deleteBtnHtml + " " + baixarWordBtnHtml;
                 // Adding spaces for minimal separation, proper styling should be done via CSS.
 
                 listaDocumentosTableBody.appendChild(tr);
@@ -545,12 +554,19 @@ document.addEventListener('DOMContentLoaded', function() {
 
             const docUID = targetButton.dataset.uid;
 
-            if (targetButton.classList.contains('btn-gerar-word')) {
-                event.preventDefault();
-                if (docUID) {
-                    gerarDocumentoWord(docUID, targetButton);
-                }
-            }
+            // The btn-gerar-word logic is removed as the button is now an anchor tag 'btn-baixar-word'
+            // or the class 'btn-gerar-word' is no longer used for this button.
+            // No specific JS is needed for the anchor tag download.
+            // If btn-gerar-word class was kept on a <button> then the old code would be:
+            // if (targetButton.classList.contains('btn-gerar-word')) { 
+            //    event.preventDefault();
+            //    if (docUID) {
+            //        gerarDocumentoWord(docUID, targetButton);
+            //    }
+            // }
+            // Since we switched to <a> tag with a direct href, and removed btn-gerar-word class from it, 
+            // the old event listener for .btn-gerar-word will not find this new button.
+            
             // Note: Other buttons like delete, finalize, download PDF are already handled
             // by querySelectorAll after carregarDocumentos. If issues arise with dynamic content
             // for those, they could be moved here as well. For now, only .btn-gerar-word is added.

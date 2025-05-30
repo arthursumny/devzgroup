@@ -2,6 +2,10 @@
 session_start();
 ob_start();
 
+// ALTER TABLE `documentos_indicacao` ADD COLUMN `generated_docx_path` VARCHAR(255) NULL DEFAULT NULL AFTER `banco_comprovante_path`;
+
+require 'vendor/autoload.php'; // For PHPOffice/PHPWord
+
 define('DB_HOST', 'mysql64-farm2.uni5.net');
 define('DB_USER', 'devzgroup');
 define('DB_PASS', 'D3vzgr0up');
@@ -9,7 +13,8 @@ define('DB_NAME', 'devzgroup');
 
 // Define the upload directory relative to this API script's location
 // Assumes 'api' is a subdirectory, and 'uploads' is a sibling to 'api' (i.e., in the web root)
-define('UPLOAD_DIR', __DIR__ . '/../uploads/'); 
+define('UPLOAD_DIR', __DIR__ . '/../uploads/');
+define('GENERATED_DOCX_UPLOAD_DIR', UPLOAD_DIR . 'generated_docx/');
 // Ensure UPLOAD_DIR has a trailing slash if not already included by __DIR__ logic.
 // For robustness: define('UPLOAD_DIR', rtrim(__DIR__, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR);
 
@@ -415,7 +420,8 @@ switch ($action) {
             http_response_code(403); echo json_encode(["success" => false, "message" => "Acesso não autorizado."]); exit;
             }
             $conn = getDbConnection();
-            $stmt = $conn->prepare("SELECT id, documento_uid, nome_documento, ag_nome_razao_social, status_documento, DATE_FORMAT(data_criacao, '%Y-%m-%dT%H:%i:%sZ') as data_criacao, banco_comprovante_path FROM documentos_indicacao WHERE parceiro_id = ? ORDER BY data_criacao DESC");
+            // Modified SQL to include generated_docx_path
+            $stmt = $conn->prepare("SELECT id, documento_uid, nome_documento, ag_nome_razao_social, status_documento, DATE_FORMAT(data_criacao, '%Y-%m-%dT%H:%i:%sZ') as data_criacao, banco_comprovante_path, generated_docx_path FROM documentos_indicacao WHERE parceiro_id = ? ORDER BY data_criacao DESC");
             if (!$stmt) { http_response_code(500); echo json_encode(["success" => false, "message" => "Erro prepare: " . $conn->error]); exit; }
             $stmt->bind_param("i", $parceiro_id_sessao);
             $stmt->execute();
@@ -542,10 +548,142 @@ switch ($action) {
         
         if ($stmt->execute()) {
             if ($stmt->affected_rows > 0) {
-                echo json_encode(["success" => true, "message" => "Documento finalizado pelo parceiro!"]);
+                // Document status successfully updated to 'Finalizado pelo Parceiro'
+                // Now, generate the DOCX file.
+                $docx_generated_path = null;
+                $docx_message = "";
+
+                try {
+                    // a. Fetch Document Data (re-use connection if possible, or create new for this self-contained block)
+                    // We need a fresh connection as $conn might have been closed by prior logic or $stmt->close()
+                    $conn_docx = getDbConnection();
+                    $stmt_fetch_data = $conn_docx->prepare(
+                        "SELECT d.*, u.nome_completo as nome_parceiro_criador, u.username as username_parceiro_criador " .
+                        "FROM documentos_indicacao d " .
+                        "LEFT JOIN usuarios u ON d.parceiro_id = u.id " .
+                        "WHERE d.documento_uid = ?"
+                    );
+                    if (!$stmt_fetch_data) {
+                        throw new Exception("Erro ao preparar busca de dados para DOCX: " . $conn_docx->error);
+                    }
+                    $stmt_fetch_data->bind_param("s", $documento_uid);
+                    $stmt_fetch_data->execute();
+                    $result_doc_data = $stmt_fetch_data->get_result();
+                    $docData = $result_doc_data->fetch_assoc();
+                    $stmt_fetch_data->close();
+
+                    if (!$docData) {
+                        throw new Exception("Documento não encontrado para geração DOCX (UID: $documento_uid).");
+                    }
+
+                    // Determine fetched_decl_resp_pa
+                    $nome_final_parceiro_criador = 'Parceiro Devzgroup'; // Default
+                    if (!empty(trim($docData['nome_parceiro_criador']))) {
+                        $nome_final_parceiro_criador = trim($docData['nome_parceiro_criador']);
+                    } elseif (!empty(trim($docData['username_parceiro_criador']))) {
+                        $nome_final_parceiro_criador = trim($docData['username_parceiro_criador']);
+                    }
+                    $docData['fetched_decl_resp_pa'] = $nome_final_parceiro_criador;
+                    
+                    // b. Server-Side Word Generation
+                    $templateProcessor = new \PhpOffice\PhpWord\TemplateProcessor('../docx/indicacao.docx');
+
+                    // Adapt JavaScript templateData to PHP
+                    $templateData = [
+                        'AG_NOME_RAZAO_SOCIAL' => $docData['ag_nome_razao_social'] ?? '',
+                        'AG_NOME_FANTASIA' => $docData['ag_nome_fantasia'] ?? '',
+                        'AG_CPF_CNPJ' => $docData['ag_cpf_cnpj'] ?? '',
+                        'AG_ENDERECO' => $docData['ag_endereco'] ?? '',
+                        'AG_COMPLEMENTO' => $docData['ag_complemento'] ?? '',
+                        'AG_BAIRRO' => $docData['ag_bairro'] ?? '',
+                        'AG_CIDADE' => $docData['ag_cidade'] ?? '',
+                        'AG_CEP' => $docData['ag_cep'] ?? '',
+                        'AG_UF' => $docData['ag_uf'] ?? '',
+                        'AG_REP_LEGAL' => $docData['ag_representante_legal'] ?? '',
+                        'AG_CARGO' => $docData['ag_cargo'] ?? '',
+                        'AG_CPF_REP' => $docData['ag_cpf_representante'] ?? '',
+                        'AG_EMAIL' => $docData['ag_email'] ?? '',
+                        'AG_TELEFONE' => $docData['ag_telefone'] ?? '',
+                        'BANCO_NOME_TITULAR' => $docData['banco_nome_razao_social'] ?? '',
+                        'BANCO_CPF_CNPJ_TITULAR' => $docData['banco_cpf_cnpj'] ?? '',
+                        'BANCO_NOME' => $docData['banco_nome'] ?? '',
+                        'BANCO_AGENCIA' => $docData['banco_agencia'] ?? '',
+                        'BANCO_CONTA' => $docData['banco_conta'] ?? '',
+                        'BANCO_TIPO_CONTA' => $docData['banco_tipo_conta'] ?? '',
+                        'BANCO_CHAVE_PIX' => $docData['banco_chave_pix'] ?? '',
+                        'PAGAMENTO_TIPO' => $docData['pagamento_tipo'] ?? '',
+                        'OBS_PA_INDICACOES' => $docData['obs_anotacoes'] ?? '', // Corresponds to obs_anotacoes in form
+                        'PA_INDICACOES' => $docData['obs_pa_indicacoes'] ?? '', // Corresponds to partner specific obs
+                        'DECL_LOCAL' => $docData['decl_local'] ?? '',
+                        'DECL_DATA' => $docData['decl_data'] ? strftime('%d/%m/%Y', strtotime($docData['decl_data'])) : '',
+                        'DECL_RESP_PARCEIRO' => $docData['decl_resp_parceiro'] ?? '',
+                        'DECL_RESP_PA' => $docData['fetched_decl_resp_pa'] ?? '',
+                    ];
+
+                    foreach ($templateData as $key => $value) {
+                        $templateProcessor->setValue($key, $value);
+                    }
+
+                    // Handle TABELA_PRODUTOS
+                    $tabelaValores = json_decode($docData['tabela_valores_json'] ?? '[]', true);
+                    $produtosParaTemplate = [];
+                    if (is_array($tabelaValores)) {
+                        foreach ($tabelaValores as $item) {
+                            if (isset($item['visivel']) && ($item['visivel'] === true || $item['visivel'] === 'true')) {
+                                $produtosParaTemplate[] = [
+                                    'ITEM_PRODUTO_SERVICO' => $item['produto'] ?? '',
+                                    'ITEM_CUSTO_JED' => number_format((float)($item['custo_jed'] ?? 0), 2, ',', '.'),
+                                    'ITEM_VENDA_CLIENTE_FINAL' => number_format((float)($item['venda_cliente_final'] ?? 0), 2, ',', '.')
+                                ];
+                            }
+                        }
+                    }
+                    $templateProcessor->cloneRowAndSetValues('ITEM_PRODUTO_SERVICO', $produtosParaTemplate);
+                    
+                    // c. Save the File
+                    if (!is_dir(GENERATED_DOCX_UPLOAD_DIR)) {
+                        if (!mkdir(GENERATED_DOCX_UPLOAD_DIR, 0775, true)) { // Changed to 0775 for security, and recursive
+                            throw new Exception("Não foi possível criar o diretório para DOCX gerados: " . GENERATED_DOCX_UPLOAD_DIR);
+                        }
+                    }
+                    $timestamp = time();
+                    $docx_filename = $documento_uid . '_' . $timestamp . '.docx';
+                    $saved_path_full = GENERATED_DOCX_UPLOAD_DIR . $docx_filename;
+                    $templateProcessor->saveAs($saved_path_full);
+
+                    if (file_exists($saved_path_full)) {
+                        $docx_generated_path = 'generated_docx/' . $docx_filename; // Relative path for DB
+
+                        // d. Update Database
+                        $stmt_update_docx_path = $conn_docx->prepare("UPDATE documentos_indicacao SET generated_docx_path = ? WHERE documento_uid = ?");
+                        if (!$stmt_update_docx_path) {
+                            throw new Exception("Erro ao preparar atualização do caminho DOCX: " . $conn_docx->error);
+                        }
+                        $stmt_update_docx_path->bind_param("ss", $docx_generated_path, $documento_uid);
+                        if (!$stmt_update_docx_path->execute()) {
+                            throw new Exception("Erro ao salvar caminho do DOCX no banco: " . $stmt_update_docx_path->error);
+                        }
+                        $stmt_update_docx_path->close();
+                        $docx_message = " Documento Word gerado com sucesso.";
+                    } else {
+                        throw new Exception("Falha ao salvar o arquivo DOCX gerado em: " . $saved_path_full);
+                    }
+                    $conn_docx->close(); // Close connection used for DOCX generation
+                } catch (Exception $e) {
+                    error_log("Erro na geração do DOCX para UID $documento_uid: " . $e->getMessage());
+                    $docx_message = " Falha ao gerar documento Word: " . $e->getMessage();
+                    // Ensure $conn_docx is closed if it was opened and an exception occurred before its normal close
+                    if (isset($conn_docx) && $conn_docx instanceof mysqli && $conn_docx->thread_id) {
+                        $conn_docx->close();
+                    }
+                }
+                
+                echo json_encode(["success" => true, "message" => "Documento finalizado pelo parceiro!" . $docx_message, "generated_docx_path" => $docx_generated_path]);
+
             } else {
                 // Re-fetch to give a more accurate message if already finalized or other condition
-                $conn_check_again = getDbConnection(); // New connection for safety or use existing
+                // This part might need to use a new connection if $conn was closed before by $stmt->close()
+                $conn_check_again = getDbConnection(); 
                 $check_again_stmt = $conn_check_again->prepare("SELECT status_documento FROM documentos_indicacao WHERE documento_uid = ? AND parceiro_id = ?");
                 $check_again_stmt->bind_param("si", $documento_uid, $parceiro_id_sessao);
                 $check_again_stmt->execute();
@@ -562,14 +700,111 @@ switch ($action) {
         } else {
             http_response_code(500); echo json_encode(["success" => false, "message" => "Erro ao atualizar status para finalizado: " . $stmt->error]);
         }
-        $stmt->close(); $conn->close();
+        // $stmt->close(); // This was closing the main $conn too early if $stmt was from $conn
+        // $conn->close(); // This was closing the main $conn too early
+        // Connections for DOCX ($conn_docx) and check_again ($conn_check_again) are closed within their scopes.
+        // The main $stmt for finalization should be closed here.
+        if (isset($stmt) && $stmt instanceof mysqli_stmt) $stmt->close();
+        if (isset($conn) && $conn instanceof mysqli && $conn->thread_id) $conn->close(); // Close main connection at the end of the case
         break;
-    
+
+    case 'download_generated_docx':
+        ob_clean(); // Clean any pre-existing output buffer content.
+
+        if (!$is_parceiro_logado_para_api) {
+            http_response_code(403);
+            echo json_encode(["success" => false, "message" => "Acesso não autorizado."]);
+            exit;
+        }
+
+        $documento_uid = trim(filter_input(INPUT_GET, 'uid', FILTER_SANITIZE_STRING) ?? filter_input(INPUT_POST, 'uid', FILTER_SANITIZE_STRING) ?? '');
+
+        if (empty($documento_uid)) {
+            http_response_code(400);
+            echo json_encode(["success" => false, "message" => "UID do documento é obrigatório."]);
+            exit;
+        }
+
+        $conn = getDbConnection();
+        $stmt = $conn->prepare("SELECT generated_docx_path, nome_documento FROM documentos_indicacao WHERE documento_uid = ? AND parceiro_id = ?");
+        if (!$stmt) {
+            http_response_code(500);
+            error_log("Prepare failed: (" . $conn->errno . ") " . $conn->error);
+            echo json_encode(["success" => false, "message" => "Erro interno do servidor ao preparar a consulta."]);
+            $conn->close();
+            exit;
+        }
+
+        $stmt->bind_param("si", $documento_uid, $parceiro_id_sessao);
+        if (!$stmt->execute()) {
+            http_response_code(500);
+            error_log("Execute failed: (" . $stmt->errno . ") " . $stmt->error);
+            echo json_encode(["success" => false, "message" => "Erro interno do servidor ao executar a consulta."]);
+            $stmt->close();
+            $conn->close();
+            exit;
+        }
+
+        $result = $stmt->get_result();
+        $doc_data = $result->fetch_assoc();
+        $stmt->close();
+        $conn->close();
+
+        if (!$doc_data) {
+            http_response_code(404);
+            echo json_encode(["success" => false, "message" => "Documento não encontrado ou acesso negado."]);
+            exit;
+        }
+
+        if (empty($doc_data['generated_docx_path'])) {
+            http_response_code(404);
+            echo json_encode(["success" => false, "message" => "Arquivo DOCX gerado não encontrado para este documento."]);
+            exit;
+        }
+
+        $relative_path_from_db = $doc_data['generated_docx_path'];
+        // UPLOAD_DIR is __DIR__ . '/../uploads/' which means /app/api/../uploads/ -> /app/uploads/
+        $full_file_path = UPLOAD_DIR . $relative_path_from_db;
+        
+        // Sanitize the base name of the path from DB to prevent directory traversal if it's ever user-influenced (it's from DB here, but good practice)
+        // $filename_from_path = basename($relative_path_from_db);
+        // $full_file_path = GENERATED_DOCX_UPLOAD_DIR . $filename_from_path; // Use GENERATED_DOCX_UPLOAD_DIR for more specificity if paths are just filenames
+
+        if (!file_exists($full_file_path) || !is_readable($full_file_path)) {
+            http_response_code(404);
+            error_log("File not found or not readable: " . $full_file_path);
+            echo json_encode(["success" => false, "message" => "Arquivo físico não encontrado no servidor ou ilegível."]);
+            exit;
+        }
+
+        // Sanitize nome_documento for use in filename
+        $sane_nome_documento = preg_replace('/[^A-Za-z0-9\-_.]/', '_', $doc_data['nome_documento'] ?? 'documento_indicacao');
+        $download_filename = "Indicacao_" . $sane_nome_documento . ".docx";
+        if (empty(trim($sane_nome_documento)) || $sane_nome_documento === '_') { // Handle cases where nome_documento might be empty or just special chars
+            $download_filename = basename($relative_path_from_db); // Fallback to the actual stored filename
+        }
+
+
+        header('Content-Description: File Transfer');
+        header('Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+        header('Content-Disposition: attachment; filename="' . $download_filename . '"');
+        header('Content-Transfer-Encoding: binary');
+        header('Expires: 0');
+        header('Cache-Control: must-revalidate');
+        header('Pragma: public');
+        header('Content-Length: ' . filesize($full_file_path));
+        
+        // ob_clean(); // Already called at the beginning of the case
+        flush(); // Flush system output buffer
+        readfile($full_file_path);
+        exit; // Important to prevent any further output
+
+        break;
     
         default:
         http_response_code(400);
         echo json_encode(["success" => false, "message" => "Ação inválida."]);
         break;
     }
-ob_end_flush();
+ob_end_flush(); // This might be problematic if exit is called before it.
 ?>

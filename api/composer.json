@@ -1,0 +1,15 @@
+{
+    "name": "devz/indicacoes-api",
+    "description": "API for indicacoes app",
+    "license": "proprietary",
+    "authors": [
+        {
+            "name": "Devz",
+            "email": "contato@devz.com.br"
+        }
+    ],
+    "minimum-stability": "stable",
+    "require": {
+        "phpoffice/phpword": "^1.3"
+    }
+}
