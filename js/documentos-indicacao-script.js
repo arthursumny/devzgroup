@@ -582,113 +582,130 @@ async function gerarDocumentoWord(uid, buttonElement) {
         const docData = resultDocDetails.data;
 
         // 2. Fetch the .docx template
-        // Path is relative to the HTML file, so if HTML is at root and js is in /js, docx in /docx, this path is correct.
-        const responseTemplate = await fetch('docx/indicacao.docx'); 
+        const responseTemplate = await fetch('docx/indicacao.docx'); //
         if (!responseTemplate.ok) {
-            throw new Error('Erro ao carregar o template Word (docx/indicacao.docx). Verifique o caminho e a disponibilidade do arquivo.');
+            throw new Error('Erro ao carregar o template Word (docx/indicacao.docx). Verifique o caminho e a disponibilidade do arquivo.'); //
         }
-        const templateArrayBuffer = await responseTemplate.arrayBuffer();
+        const templateArrayBuffer = await responseTemplate.arrayBuffer(); //
 
         // 3. Create PizZip instance and load template
-        const zip = new PizZip(templateArrayBuffer);
-        const doc = new window.docxtemplater(zip, {
-            paragraphLoop: true,
-            linebreaks: true,
-            nullGetter: function(part) { 
-                if (part.module === "raw" && part.type === "placeholder") {
-                     // Check against a list of known prefixes or exact names
-                    const knownPrefixes = ["AG_", "BANCO_", "DECL_", "OBS_", "PA_", "ITEM_", "PAGAMENTO_TIPO"];
-                    if (knownPrefixes.some(prefix => part.value.startsWith(prefix)) || part.value === "PAGAMENTO_TIPO") {
-                        return ""; // Return empty string for your specific placeholders
+        const zip = new PizZip(templateArrayBuffer); //
+        const doc = new window.docxtemplater(zip, { //
+            paragraphLoop: true, //
+            linebreaks: true, //
+            nullGetter: function(part) { //
+                if (part.module === "raw" && part.type === "placeholder") { //
+                    const knownPrefixes = ["AG_", "BANCO_", "DECL_", "OBS_", "PA_", "ITEM_", "PAGAMENTO_TIPO"]; //
+                    if (knownPrefixes.some(prefix => part.value.startsWith(prefix)) || part.value === "PAGAMENTO_TIPO") { //
+                        return ""; //
                     }
                 }
-                // For any other undefined/null placeholder, docxtemplater will throw an error by default.
-                // To return "" for *all* undefined placeholders (less strict):
-                // return ""; 
-                // However, it's often better to ensure all template variables are explicitly handled.
-                // If an error is thrown here for an unexpected placeholder, it means the template has a variable
-                // not accounted for in templateData or the nullGetter logic.
-                // For this implementation, we only make known ones empty.
-                // If you want truly ALL missing to be empty, just return "" here unconditionally.
-                // For now, let's stick to the provided logic which is more specific.
-                return ""; // Fallback as per original snippet for specific placeholders
+                return ""; //
             }
         });
 
         // 4. Prepare data for the template
-        const templateData = {
-            AG_NOME_RAZAO_SOCIAL: docData.ag_nome_razao_social || '',
-            AG_NOME_FANTASIA: docData.ag_nome_fantasia || '',
-            AG_CPF_CNPJ: docData.ag_cpf_cnpj || '', 
-            AG_ENDERECO: docData.ag_endereco || '', // Assuming template uses AG_ENDERECO
-            AG_COMPLEMENTO: docData.ag_complemento || '',
-            AG_BAIRRO: docData.ag_bairro || '',
-            AG_CIDADE: docData.ag_cidade || '',
-            AG_CEP: docData.ag_cep || '',
-            AG_UF: docData.ag_uf || '',
-            AG_REP_LEGAL: docData.ag_representante_legal || '',
-            AG_CARGO: docData.ag_cargo || '',
-            AG_CPF_REP: docData.ag_cpf_representante || '',
-            AG_EMAIL: docData.ag_email || '',
-            AG_TELEFONE: docData.ag_telefone || '',
-            BANCO_NOME_TITULAR: docData.banco_nome_razao_social || '',
-            BANCO_CPF_CNPJ_TITULAR: docData.banco_cpf_cnpj || '',
-            BANCO_NOME: docData.banco_nome || '',
-            BANCO_AGENCIA: docData.banco_agencia || '',
-            BANCO_CONTA: docData.banco_conta || '',
-            BANCO_TIPO_CONTA: docData.banco_tipo_conta || '',
-            BANCO_CHAVE_PIX: docData.banco_chave_pix || '',
-            PAGAMENTO_TIPO: docData.pagamento_tipo || '',
-            OBS_PA_INDICACOES: docData.obs_anotacoes || '', 
-            PA_INDICACOES: docData.obs_pa_indicacoes || '', 
-            DECL_LOCAL: docData.decl_local || '',
-            DECL_DATA: docData.decl_data ? new Date(docData.decl_data).toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : '', // Added timeZone UTC
-            DECL_RESP_PARCEIRO: docData.decl_resp_parceiro || '',
-            DECL_RESP_PA: docData.fetched_decl_resp_pa || '',
-            TABELA_PRODUTOS: []
+        const templateData = { //
+            AG_NOME_RAZAO_SOCIAL: docData.ag_nome_razao_social || '', //
+            AG_NOME_FANTASIA: docData.ag_nome_fantasia || '', //
+            AG_CPF_CNPJ: docData.ag_cpf_cnpj || '', //
+            AG_ENDERECO: docData.ag_endereco || '', //
+            AG_COMPLEMENTO: docData.ag_complemento || '', //
+            AG_BAIRRO: docData.ag_bairro || '', //
+            AG_CIDADE: docData.ag_cidade || '', //
+            AG_CEP: docData.ag_cep || '', //
+            AG_UF: docData.ag_uf || '', //
+            AG_REP_LEGAL: docData.ag_representante_legal || '', //
+            AG_CARGO: docData.ag_cargo || '', //
+            AG_CPF_REP: docData.ag_cpf_representante || '', //
+            AG_EMAIL: docData.ag_email || '', //
+            AG_TELEFONE: docData.ag_telefone || '', //
+            BANCO_NOME_TITULAR: docData.banco_nome_razao_social || '', //
+            BANCO_CPF_CNPJ_TITULAR: docData.banco_cpf_cnpj || '', //
+            BANCO_NOME: docData.banco_nome || '', //
+            BANCO_AGENCIA: docData.banco_agencia || '', //
+            BANCO_CONTA: docData.banco_conta || '', //
+            BANCO_TIPO_CONTA: docData.banco_tipo_conta || '', //
+            BANCO_CHAVE_PIX: docData.banco_chave_pix || '', //
+            PAGAMENTO_TIPO: docData.pagamento_tipo || '', //
+            OBS_PA_INDICACOES: docData.obs_anotacoes || '', //
+            PA_INDICACOES: docData.obs_pa_indicacoes || '', //
+            DECL_LOCAL: docData.decl_local || '', //
+            DECL_DATA: docData.decl_data ? new Date(docData.decl_data).toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : '', //
+            DECL_RESP_PARCEIRO: docData.decl_resp_parceiro || '', //
+            DECL_RESP_PA: docData.fetched_decl_resp_pa || '', //
+            TABELA_PRODUTOS: [] //
         };
 
-        if (docData.tabela_valores_json) {
-            const tabelaValores = JSON.parse(docData.tabela_valores_json);
-            templateData.TABELA_PRODUTOS = tabelaValores
-                .filter(item => item.visivel !== false && item.visivel !== 'false')
-                .map(item => ({
-                    ITEM_PRODUTO_SERVICO: item.produto || '',
-                    ITEM_CUSTO_JED: item.custo_jed || '',
-                    ITEM_VENDA_CLIENTE_FINAL: item.venda_cliente_final || ''
+        if (docData.tabela_valores_json) { //
+            const tabelaValores = JSON.parse(docData.tabela_valores_json); //
+            templateData.TABELA_PRODUTOS = tabelaValores //
+                .filter(item => item.visivel !== false && item.visivel !== 'false') //
+                .map(item => ({ //
+                    ITEM_PRODUTO_SERVICO: item.produto || '', //
+                    ITEM_CUSTO_JED: item.custo_jed || '', //
+                    ITEM_VENDA_CLIENTE_FINAL: item.venda_cliente_final || '' //
                 }));
         }
 
-        doc.setData(templateData);
-        doc.render(); 
+        doc.setData(templateData); //
+        doc.render(); //
 
-        const out = doc.getZip().generate({
-            type: 'blob',
-            mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        const out = doc.getZip().generate({ //
+            type: 'blob', //
+            mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', //
         });
 
-        let fileName = "indicacao_documento.docx";
-        if (docData.nome_documento) {
-            // Sanitize filename: replace non-alphanumeric (excluding _, ., -) with _
-            const sanitizedName = docData.nome_documento.replace(/[^\w.-]/gi, '_');
-            fileName = `indicacao_${sanitizedName}.docx`;
+        let fileName = "indicacao_documento.docx"; //
+        if (docData.nome_documento) { //
+            const sanitizedName = docData.nome_documento.replace(/[^\w.-]/gi, '_'); //
+            fileName = `indicacao_${sanitizedName}_${uid.substring(0,8)}.docx`; // Nome de arquivo mais único
         }
-        saveAs(out, fileName);
+
+        // 5. Salva no computador do usuário (funcionalidade existente)
+        saveAs(out, fileName); //
+
+        // 6. Envia para o servidor para salvar na pasta /documentos
+        const formData = new FormData();
+        formData.append('documento_word', out, fileName); // Anexa o blob com seu nome de arquivo
+        formData.append('documento_uid', uid);
+        formData.append('action', 'save_word_document'); // Ação para o script PHP
+        formData.append('fileName', fileName); // Envia o nome do arquivo desejado
+
+        if (typeof ID_PARCEIRO_LOGADO !== 'undefined') { //
+             formData.append('parceiro_id', ID_PARCEIRO_LOGADO); //
+        }
+
+        try {
+            const responseSaveServer = await fetch('api/gerenciar_documentos_indicacao.php', {
+                method: 'POST',
+                body: formData,
+            });
+            const resultSaveServer = await responseSaveServer.json();
+
+            if (responseSaveServer.ok && resultSaveServer.success) {
+                alert(resultSaveServer.message || `Documento "${fileName}" salvo no servidor com sucesso!`);
+            } else {
+                alert(resultSaveServer.message || `Erro ao salvar o documento "${fileName}" no servidor.`);
+            }
+        } catch (serverSaveError) {
+            console.error('Erro ao tentar salvar documento no servidor:', serverSaveError);
+            alert(`Erro de comunicação ao tentar salvar o documento "${fileName}" no servidor.`);
+        }
 
     } catch (error) {
-        console.error('Erro ao gerar documento Word:', error);
-        // Provide a more user-friendly error message, potentially distinguishing between network/fetch errors and template processing errors.
-        let userMessage = 'Erro ao gerar documento Word.';
-        if (error.message.includes("template Word")) {
-            userMessage = `Erro ao carregar o template Word (${error.message}). Verifique se o arquivo 'docx/indicacao.docx' existe no servidor.`;
-        } else if (error.message.includes("dados do documento")) {
-            userMessage = `Erro ao buscar dados do documento: ${error.message}.`;
+        console.error('Erro ao gerar documento Word:', error); //
+        let userMessage = 'Erro ao gerar documento Word.'; //
+        if (error.message.includes("template Word")) { //
+            userMessage = `Erro ao carregar o template Word (${error.message}). Verifique se o arquivo 'docx/indicacao.docx' existe no servidor.`; //
+        } else if (error.message.includes("dados do documento")) { //
+            userMessage = `Erro ao buscar dados do documento: ${error.message}.`; //
         } else {
-            userMessage = `Ocorreu um erro inesperado: ${error.message}`;
+            userMessage = `Ocorreu um erro inesperado: ${error.message}`; //
         }
-        alert(userMessage);
+        alert(userMessage); //
     } finally {
-        buttonElement.disabled = false;
-        buttonElement.innerHTML = originalButtonContent;
+        buttonElement.disabled = false; //
+        buttonElement.innerHTML = originalButtonContent; //
     }
 }

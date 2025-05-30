@@ -565,10 +565,128 @@ switch ($action) {
         $stmt->close(); $conn->close();
         break;
     
-    
+    case 'save_word_document':
+        if (!$is_parceiro_logado_para_api) {
+            http_response_code(403);
+            echo json_encode(["success" => false, "message" => "Acesso não autorizado para salvar documento Word."]);
+            exit;
+        }
+
+        $documento_uid_req = trim(filter_input(INPUT_POST, 'documento_uid', FILTER_SANITIZE_STRING));
+        $parceiro_id_req = filter_input(INPUT_POST, 'parceiro_id', FILTER_VALIDATE_INT);
+        $client_fileName = trim(filter_input(INPUT_POST, 'fileName', FILTER_SANITIZE_STRING));
+
+        if (empty($documento_uid_req) || empty($client_fileName)) {
+            http_response_code(400);
+            echo json_encode(["success" => false, "message" => "UID do documento e nome do arquivo são obrigatórios."]);
+            exit;
+        }
+        // Verifica se o parceiro_id enviado no formulário corresponde ao da sessão
+        if ($parceiro_id_req !== $parceiro_id_sessao) {
+            http_response_code(403);
+            echo json_encode(["success" => false, "message" => "ID do parceiro inválido para salvar o documento."]);
+            exit;
+        }
+        
+        // Validação adicional: Verificar se o documento_uid pertence ao parceiro logado
+        $conn_check = getDbConnection();
+        $stmt_check_owner = $conn_check->prepare("SELECT id FROM documentos_indicacao WHERE documento_uid = ? AND parceiro_id = ?");
+        if (!$stmt_check_owner) {
+            error_log("Erro ao preparar statement de verificação de proprietário: " . $conn_check->error);
+            http_response_code(500); echo json_encode(["success" => false, "message" => "Erro ao verificar proprietário do documento (prepare)."]); $conn_check->close(); exit;
+        }
+        $stmt_check_owner->bind_param("si", $documento_uid_req, $parceiro_id_sessao);
+        if (!$stmt_check_owner->execute()) {
+            error_log("Erro ao executar statement de verificação de proprietário: " . $stmt_check_owner->error);
+            http_response_code(500); echo json_encode(["success" => false, "message" => "Erro ao verificar proprietário do documento (execute)."]); $stmt_check_owner->close(); $conn_check->close(); exit;
+        }
+        $result_check_owner = $stmt_check_owner->get_result();
+        if ($result_check_owner->num_rows === 0) {
+            http_response_code(403); echo json_encode(["success" => false, "message" => "Documento não pertence ao parceiro logado ou não encontrado."]); $stmt_check_owner->close(); $conn_check->close(); exit;
+        }
+        $stmt_check_owner->close();
+        $conn_check->close();
+
+
+        if (isset($_FILES['documento_word']) && $_FILES['documento_word']['error'] == UPLOAD_ERR_OK) {
+            $word_upload_dir_relative = '../documentos/'; // Um nível acima de 'api', depois para 'documentos'
+            // Adicionado realpath para resolver caminhos relativos de forma mais robusta e DIRECTORY_SEPARATOR para compatibilidade
+            $word_upload_dir_absolute = realpath(__DIR__ . DIRECTORY_SEPARATOR . $word_upload_dir_relative);
+
+            // Verifica se realpath retornou um caminho válido e adiciona a barra no final se necessário
+            if (!$word_upload_dir_absolute) {
+                 error_log("Falha ao resolver o caminho absoluto para o diretório de upload de Word: " . __DIR__ . DIRECTORY_SEPARATOR . $word_upload_dir_relative);
+                 http_response_code(500);
+                 echo json_encode(["success" => false, "message" => "Erro no servidor: Não foi possível determinar o diretório de destino para o documento Word."]);
+                 exit;
+            }
+            $word_upload_dir_absolute .= DIRECTORY_SEPARATOR;
+
+
+            if (!is_dir($word_upload_dir_absolute)) {
+                if (!mkdir($word_upload_dir_absolute, 0775, true)) { // Cria recursivamente com permissões
+                    error_log("Falha ao criar diretório de upload de Word: " . $word_upload_dir_absolute);
+                    http_response_code(500);
+                    echo json_encode(["success" => false, "message" => "Erro no servidor: Não foi possível criar o diretório de destino para o documento Word."]);
+                    exit;
+                }
+            }
+
+            if (!is_writable($word_upload_dir_absolute)) {
+                error_log("Diretório de upload de Word não tem permissão de escrita: " . $word_upload_dir_absolute);
+                http_response_code(500);
+                echo json_encode(["success" => false, "message" => "Erro no servidor: Diretório de destino para o documento Word sem permissão de escrita."]);
+                exit;
+            }
+
+            $baseName = pathinfo($client_fileName, PATHINFO_FILENAME);
+            $extension = pathinfo($client_fileName, PATHINFO_EXTENSION);
+            if (strtolower($extension) !== 'docx') {
+                 http_response_code(400);
+                 echo json_encode(["success" => false, "message" => "Tipo de arquivo inválido. Somente .docx é permitido."]);
+                 exit;
+            }
+            $sanitizedBaseName = preg_replace('/[^a-zA-Z0-9_.-]/', '_', $baseName);
+            $server_fileName = $sanitizedBaseName . '.' . $extension; // O JS já cria um nome único
+            $target_file_path = $word_upload_dir_absolute . $server_fileName;
+
+            if (move_uploaded_file($_FILES['documento_word']['tmp_name'], $target_file_path)) {
+                // Opcional: Salvar o caminho do documento Word no banco de dados
+                // $conn_update = getDbConnection();
+                // $stmt_update_path = $conn_update->prepare("UPDATE documentos_indicacao SET path_documento_word = ? WHERE documento_uid = ? AND parceiro_id = ?");
+                // if ($stmt_update_path) {
+                //     $relative_path_for_db = 'documentos/' . $server_fileName; // Salva caminho relativo à raiz da web
+                //     $stmt_update_path->bind_param("ssi", $relative_path_for_db, $documento_uid_req, $parceiro_id_sessao);
+                //     $stmt_update_path->execute();
+                //     $stmt_update_path->close();
+                // }
+                // $conn_update->close();
+
+                echo json_encode(["success" => true, "message" => "Documento Word '" . htmlspecialchars($server_fileName) . "' salvo no servidor com sucesso.", "path" => 'documentos/' . $server_fileName]);
+            } else {
+                error_log("Falha ao mover arquivo Word para: " . $target_file_path . ". Erro PHP: " . $_FILES['documento_word']['error']);
+                http_response_code(500);
+                echo json_encode(["success" => false, "message" => "Erro ao salvar o documento Word no servidor."]);
+            }
+        } else {
+            http_response_code(400);
+            $upload_error = isset($_FILES['documento_word']['error']) ? $_FILES['documento_word']['error'] : 'Nenhum arquivo recebido';
+            error_log("Nenhum arquivo 'documento_word' recebido ou erro no upload. Código de erro: " . $upload_error);
+            echo json_encode(["success" => false, "message" => "Nenhum arquivo 'documento_word' recebido ou erro no upload. Código: " . $upload_error]);
+        }
+        break;
+
         default:
         http_response_code(400);
-        echo json_encode(["success" => false, "message" => "Ação inválida."]);
+        // Log da ação recebida para depuração no servidor
+        error_log("API gerenciar_documentos_indicacao.php: Ação inválida ou não especificada. Ação recebida: '" . $action . "'. Dados POST: " . print_r($_POST, true));
+        
+        // Envia uma mensagem mais informativa de volta para o cliente
+        echo json_encode([
+            "success" => false,
+            "message" => "Ação inválida ou não especificada no servidor. Ação que o servidor recebeu: '" . htmlspecialchars($action) . "'. Verifique se a ação 'save_word_document' está sendo enviada corretamente.",
+            "received_action_on_server" => $action // Inclui a ação recebida no JSON
+        ]);
         break;
     }
 ob_end_flush();
