@@ -90,7 +90,30 @@ body { /* Aplicar ao body das páginas de dashboard */
 .main-header .main-nav .welcome-message {
     margin-right: 20px;
     color: var(--text-color);
-    font-size: 0.95em; 
+    font-size: 1em; /* Aumentar um pouco a fonte */
+    font-weight: 500; /* Deixar um pouco mais destacado */
+    padding: 10px 0; /* Adicionar padding para alinhar melhor com os botões */
+}
+
+/* Novo estilo para o botão Voltar ao Dashboard no header */
+.main-header .main-nav ul li a.btn-dashboard-header {
+    background-color: var(--primary-color); /* Usar a cor primária */
+    color: var(--white-color) !important;
+    padding: 10px 20px;
+    border-radius: var(--button-border-radius, 5px);
+    text-decoration: none;
+    font-weight: 500;
+    transition: background-color 0.2s ease, transform 0.2s ease;
+    border: 1px solid var(--primary-color);
+    line-height: 1.2;
+    display: inline-block;
+    margin: 0 5px; /* Ajustar margem para separar do botão Sair */
+}
+
+.main-header .main-nav ul li a.btn-dashboard-header:hover {
+    background-color: var(--primary-color-dark, #1f2b38); /* Um tom mais escuro da cor primária no hover */
+    border-color: var(--primary-color-dark, #1f2b38);
+    transform: translateY(-1px);
 }
 
 /* TORNANDO O SELETOR MAIS ESPECÍFICO */

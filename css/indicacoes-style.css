@@ -577,6 +577,59 @@
 .status-rejeitado { background-color: #dc3545; } /* Vermelho Perigo */
 .status-default { background-color: #6c757d; } /* Cinza Secundário */
 
+/* Estilos para a tabela de documentos */
+.table-documentos {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    overflow: hidden; /* Para que o box-shadow e border-radius funcionem bem com a tabela */
+}
+
+.table-documentos thead {
+    background-color: var(--primary-color);
+    color: var(--white-color);
+}
+
+.table-documentos th {
+    padding: 15px;
+    text-align: left;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    font-size: 0.9em;
+}
+
+.table-documentos tbody tr {
+    border-bottom: 1px solid var(--gray-light, #ecf0f1);
+}
+
+.table-documentos tbody tr:nth-child(even) {
+    background-color: var(--gray-lightest, #f9f9f9);
+}
+
+.table-documentos tbody tr:hover {
+    background-color: var(--secondary-color-light, #e9f5fd); /* Um azul bem claro para hover */
+    color: var(--primary-color);
+}
+
+.table-documentos td {
+    padding: 12px 15px;
+    vertical-align: middle;
+    font-size: 0.95em;
+}
+
+.table-documentos .acoes-cell .btn {
+    margin-right: 5px;
+    padding: 6px 10px;
+    font-size: 0.85em;
+}
+
+.table-documentos .acoes-cell .btn:last-child {
+    margin-right: 0;
+}
+
 /* Mensagem temporária de feedback */
 .temp-message {
     position: fixed;

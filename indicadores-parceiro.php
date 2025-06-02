@@ -29,7 +29,7 @@ $parceiroId = $_SESSION['user_id'];
             <nav class="main-nav">
                 <ul>
                     <li><span class="welcome-message">Olá, <?php echo $nomeUsuario; ?>!</span></li>
-                    <li><a href="parceiro-dashboard.php" class="btn">Voltar ao Dashboard</a></li>
+                    <li><a href="parceiro-dashboard.php" class="btn btn-dashboard-header">Voltar ao Dashboard</a></li>
                     <li><a href="#" id="logoutButton" class="btn btn-logout">Sair</a></li>
                 </ul>
             </nav>
