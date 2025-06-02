@@ -465,7 +465,8 @@
     border: 1px solid var(--primary-color);
 }
 .btn-outline:hover {
-    background-color: var(--primary-color-light, #f0f0ff);
+    background-color: var(--primary-color);
+    color: var(--white-color);
 }
 
 
@@ -633,3 +634,88 @@
         flex-basis: auto; /* Reseta a base flex para empilhamento */
     }
 }
+
+/* Estilos para a tabela de documentos em indicadores-parceiro.php */
+.table-responsive { /* Mantido se você usar para rolagem em telas pequenas */
+    overflow-x: auto;
+    margin-top: 15px; /* Adiciona um espaço acima da tabela se estiver dentro de .table-responsive */
+}
+
+.table-documentos { /* Renomeado de .documentos-tabela para corresponder ao HTML */
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+    background-color: var(--white-color, #fff); /* Garante fundo branco */
+    /* A seção .lista-documentos-section já tem box-shadow e border-radius */
+}
+
+.table-documentos th,
+.table-documentos td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid var(--gray-border, #e0e0e0);
+    vertical-align: middle; /* Alinha o conteúdo verticalmente */
+}
+
+.table-documentos th {
+    background-color: var(--gray-lightest, #f8f9fa);
+    color: var(--primary-color-dark, #2c3e50); /* Cor mais escura para contraste */
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.8em; /* Tamanho sutilmente menor */
+    letter-spacing: 0.05em;
+    border-top: 1px solid var(--gray-border, #e0e0e0); /* Borda no topo também */
+}
+
+.table-documentos tbody tr:nth-child(even) {
+    background-color: var(--gray-lightest-even, #fdfdfd); /* Zebrado muito sutil */
+}
+
+.table-documentos tbody tr:hover {
+    background-color: var(--gray-lighter-hover, #f0f3f5); /* Um hover suave */
+}
+
+.table-documentos .acoes-cell {
+    text-align: right; /* Ações alinhadas à direita */
+    white-space: nowrap; /* Impede que os botões quebrem linha */
+}
+
+/* Estilos para botões de ação genéricos na tabela */
+.table-documentos .acoes-cell .btn-acao {
+    display: inline-flex; /* Para alinhar ícone e texto, se houver */
+    align-items: center;
+    justify-content: center;
+    padding: 6px 10px;
+    margin-left: 6px;
+    font-size: 0.9em;
+    border-radius: var(--button-border-radius, 4px);
+    color: white !important; /* Força a cor do texto do botão */
+    text-decoration: none !important; /* Remove sublinhado de links */
+    border: none;
+    cursor: pointer;
+    transition: opacity 0.2s ease, background-color 0.2s ease;
+}
+.table-documentos .acoes-cell .btn-acao:first-child {
+    margin-left: 0;
+}
+.table-documentos .acoes-cell .btn-acao:hover {
+    opacity: 0.85;
+}
+.table-documentos .acoes-cell .btn-acao i {
+    /* margin-right: 5px; Se você adicionar texto ao lado do ícone */
+    font-size: 1em; /* Ajusta o tamanho do ícone se necessário */
+}
+
+/* Cores específicas para os botões de ação */
+/* Se você usar <a> tags, pode ser necessário adicionar !important para background-color se houver conflitos */
+.table-documentos .acoes-cell .btn-view { background-color: var(--info-color, #3498db); }
+.table-documentos .acoes-cell .btn-view:hover { background-color: var(--info-color-dark, #2980b9); }
+
+.table-documentos .acoes-cell .btn-clone { background-color: var(--success-color, #2ecc71); }
+.table-documentos .acoes-cell .btn-clone:hover { background-color: var(--success-color-dark, #27ae60); }
+
+.table-documentos .acoes-cell .btn-edit { background-color: var(--warning-color, #f39c12); } /* Exemplo para editar */
+.table-documentos .acoes-cell .btn-edit:hover { background-color: var(--warning-color-dark, #e67e22); }
+
+.table-documentos .acoes-cell .btn-delete { background-color: var(--danger-color, #e74c3c); }
+.table-documentos .acoes-cell .btn-delete:hover { background-color: var(--danger-color-dark, #c0392b); }

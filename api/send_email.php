@@ -2,6 +2,9 @@
 // enviar_email.php
 ob_start(); // Inicia o buffer de saída
 
+// Incluir arquivo de configuração SMTP
+require_once __DIR__ . '/config.php';
+
 // Incluir arquivos do PHPMailer
 require 'PHPMailer/Exception.php';
 require 'PHPMailer/PHPMailer.php';
@@ -101,8 +104,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $mail->isSMTP();
         $mail->Host       = 'smtpi.uni5.net';
         $mail->SMTPAuth   = true;
-        $mail->Username   = 'parceiro@devzgroup.com.br'; // Usuário SMTP para autenticação
-        $mail->Password   = 'Ti@d3vzgroup';          // Senha SMTP
+        $mail->Username   = SMTP_USERNAME; // Usuário SMTP para autenticação
+        $mail->Password   = SMTP_PASSWORD;          // Senha SMTP
         $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
         $mail->Port       = 587;
 

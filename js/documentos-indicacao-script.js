@@ -105,35 +105,68 @@ document.addEventListener('DOMContentLoaded', function() {
                 tdCriadoEm.textContent = new Date(doc.data_criacao).toLocaleDateString();
 
                 const tdAcoes = tr.insertCell();
-                tdAcoes.style.textAlign = 'center'; // Center align action buttons
+                tdAcoes.classList.add('acoes-cell'); // Adiciona a classe para estilização da célula
 
-                let viewBtnHtml = `<a href="${linkDoc}" class="btn-action btn-view-details" title="Editar/Ver Detalhes"><i class="fas fa-eye"></i></a>`;
-                
-                let finalizarBtnHtml = '';
+                // Botão Visualizar/Editar Detalhes
+                const viewBtn = document.createElement('a');
+                viewBtn.href = linkDoc;
+                viewBtn.classList.add('btn-acao', 'btn-view');
+                viewBtn.title = "Visualizar / Editar Detalhes";
+                viewBtn.innerHTML = '<i class="fas fa-eye"></i>';
+                tdAcoes.appendChild(viewBtn);
+
+                // Botão Finalizar pelo Parceiro
                 if (doc.status_documento !== 'Finalizado pelo Parceiro' && doc.status_documento !== 'Assinado') {
-                    finalizarBtnHtml = `<button class="btn-action btn-finalizar-parceiro" data-uid="${doc.documento_uid}" title="Marcar como finalizado"><i class="fas fa-check-circle"></i></button>`;
+                    const finalizarBtn = document.createElement('button');
+                    finalizarBtn.classList.add('btn-acao', 'btn-finalizar-parceiro');
+                    finalizarBtn.dataset.uid = doc.documento_uid;
+                    finalizarBtn.title = "Marcar como finalizado pelo parceiro";
+                    finalizarBtn.innerHTML = '<i class="fas fa-check-circle"></i>';
+                    tdAcoes.appendChild(finalizarBtn);
                 } else {
-                    // Optional: show disabled/static icon if finalized
-                    // finalizarBtnHtml = `<button class="btn-action" disabled title="Finalizado pelo Parceiro"><i class="fas fa-check-circle" style="color: green;"></i></button>`;
+                    // Opcional: Mostrar um ícone estático se já finalizado
+                    const finalizadoIcon = document.createElement('span');
+                    finalizadoIcon.classList.add('btn-acao'); // Para manter o espaçamento/tamanho
+                    finalizadoIcon.title = doc.status_documento;
+                    finalizadoIcon.innerHTML = '<i class="fas fa-check-circle" style="color: green;"></i>'; // Estilo inline para cor, pode ser classe CSS
+                    finalizadoIcon.style.cursor = 'default';
+                    //tdAcoes.appendChild(finalizadoIcon); // Descomente se quiser mostrar um ícone para finalizados
                 }
 
-                let pdfBtnHtml = `<button class="btn-action btn-baixar-pdf-parceiro" data-uid="${doc.documento_uid}" title="Baixar PDF"><i class="fas fa-file-pdf"></i></button>`;
-                
-                let deleteBtnHtml = `<button class="btn-action btn-delete-documento" data-uid="${doc.documento_uid}" title="Excluir Documento"><i class="fas fa-trash"></i></button>`;
-                
-                let gerarWordBtnHtml = '';
+                // Botão Baixar PDF
+                const pdfBtn = document.createElement('button');
+                pdfBtn.classList.add('btn-acao', 'btn-baixar-pdf-parceiro');
+                pdfBtn.dataset.uid = doc.documento_uid;
+                pdfBtn.title = "Baixar PDF do Documento";
+                pdfBtn.innerHTML = '<i class="fas fa-file-pdf"></i>';
+                tdAcoes.appendChild(pdfBtn);
+
+                // Botão Gerar Word (se aplicável)
                 if (doc.status_documento === 'Finalizado pelo Parceiro' || doc.status_documento === 'Assinado') {
-                    gerarWordBtnHtml = `<button class="btn-action btn-gerar-word" data-uid="${doc.documento_uid}" title="Gerar Documento Word"><i class="fas fa-file-word"></i></button>`;
+                    const gerarWordBtn = document.createElement('button');
+                    gerarWordBtn.classList.add('btn-acao', 'btn-gerar-word');
+                    gerarWordBtn.dataset.uid = doc.documento_uid;
+                    gerarWordBtn.title = "Gerar Documento Word (.docx)";
+                    gerarWordBtn.innerHTML = '<i class="fas fa-file-word"></i>';
+                    tdAcoes.appendChild(gerarWordBtn);
                 }
+
+                // Botão Excluir Documento
+                const deleteBtn = document.createElement('button');
+                deleteBtn.classList.add('btn-acao', 'btn-delete'); // Usa a classe btn-delete do CSS
+                deleteBtn.dataset.uid = doc.documento_uid;
+                deleteBtn.title = "Excluir Documento";
+                deleteBtn.innerHTML = '<i class="fas fa-trash"></i>';
+                tdAcoes.appendChild(deleteBtn);
                 
-                tdAcoes.innerHTML = viewBtnHtml + " " + finalizarBtnHtml + " " + pdfBtnHtml + " " + deleteBtnHtml + " " + gerarWordBtnHtml;
-                // Adding spaces for minimal separation, proper styling should be done via CSS.
+                // tdAcoes.innerHTML = viewBtnHtml + " " + finalizarBtnHtml + " " + pdfBtnHtml + " " + deleteBtnHtml + " " + gerarWordBtnHtml;
+                // A linha acima foi substituída pela criação e apensamento dos elementos individualmente.
 
                 listaDocumentosTableBody.appendChild(tr);
             });
 
             // Re-attach Event Listeners for the new buttons
-            document.querySelectorAll('.btn-delete-documento').forEach(button => {
+            document.querySelectorAll('.btn-delete').forEach(button => {
                 button.addEventListener('click', function() {
                     const docUID = this.dataset.uid;
                     if (confirm('Tem certeza que deseja excluir este documento? Esta ação não pode ser desfeita.')) {
