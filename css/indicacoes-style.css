@@ -566,7 +566,7 @@
     border-radius: 4px;
     font-size: 0.85em;
     font-weight: 500;
-    color: white;
+    color: black;
     white-space: nowrap;
 }
 .status-pendente-de-preenchimento { background-color: #ffc107; color: #333; } /* Amarelo */
