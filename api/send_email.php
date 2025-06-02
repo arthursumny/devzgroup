@@ -2,6 +2,22 @@
 // enviar_email.php
 ob_start(); // Inicia o buffer de saída
 
+// Incluir arquivo de configuração
+@include_once 'config.php'; // O '@' suprime erros de inclusão, vamos verificar manualmente
+
+// Verificar se o arquivo de configuração foi carregado e as constantes estão definidas
+if (!defined('SMTP_HOST') || !defined('SMTP_USERNAME') || !defined('SMTP_PASSWORD') || 
+    !defined('SMTP_SECURE') || !defined('SMTP_PORT') || !defined('EMAIL_REMETENTE_SISTEMA') ||
+    !defined('EMAIL_DESTINATARIO_ACESSO_PARCEIRO') || !defined('EMAIL_COPIA_ACESSO_PARCEIRO_1') ||
+    !defined('EMAIL_COPIA_ACESSO_PARCEIRO_2')) {
+    ob_clean();
+    http_response_code(500);
+    // Não exponha detalhes do caminho do arquivo ou problemas de config no erro JSON em produção
+    error_log("Erro Crítico: O arquivo de configuração config.php não foi encontrado ou está incompleto.");
+    echo json_encode(["message" => "Erro interno do servidor. Por favor, contate o administrador."]);
+    exit;
+}
+
 // Incluir arquivos do PHPMailer
 require 'PHPMailer/Exception.php';
 require 'PHPMailer/PHPMailer.php';
@@ -68,12 +84,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         // Configurações de Email para Solicitação de Acesso Parceiro
-        $emailDestinatario = 'rubia.martins@devzgroup.com.br';
+        $emailDestinatario = EMAIL_DESTINATARIO_ACESSO_PARCEIRO;
         $emailCopia = [
-            'arthur.saggin@devzgroup.com.br',
-            'erodi@devzgroup.com.br'
+            EMAIL_COPIA_ACESSO_PARCEIRO_1,
+            EMAIL_COPIA_ACESSO_PARCEIRO_2
         ];
-        $emailRemetente = 'noreply@devzgroup.com.br'; // O email que aparecerá no campo "De:"
+        $emailRemetente = EMAIL_REMETENTE_SISTEMA; // O email que aparecerá no campo "De:"
         $nomeRemetente = 'Sistema Devzgroup - Solicitação de Acesso';
         $assunto = 'Nova Solicitação de Acesso Parceiro - ' . htmlspecialchars($name);
         $corpoEmail = "<p>Uma nova solicitação de acesso para parceiro foi feita através do site:</p>" .
@@ -99,12 +115,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
         // Configurações do Servidor SMTP (mantidas do seu script original)
         $mail->isSMTP();
-        $mail->Host       = 'smtpi.uni5.net';
+        $mail->Host       = SMTP_HOST;
         $mail->SMTPAuth   = true;
-        $mail->Username   = 'parceiro@devzgroup.com.br'; // Usuário SMTP para autenticação
-        $mail->Password   = 'Ti@d3vzgroup';          // Senha SMTP
-        $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-        $mail->Port       = 587;
+        $mail->Username   = SMTP_USERNAME; // Usuário SMTP para autenticação
+        $mail->Password   = SMTP_PASSWORD;          // Senha SMTP
+        $mail->SMTPSecure = SMTP_SECURE;
+        $mail->Port       = SMTP_PORT;
 
         // Debugging (opcional, pode comentar/remover em produção se não precisar de logs detalhados)
         // $mail->SMTPDebug = SMTP::DEBUG_SERVER;
