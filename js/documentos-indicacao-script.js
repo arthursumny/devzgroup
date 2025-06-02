@@ -4,6 +4,15 @@ document.addEventListener('DOMContentLoaded', function() {
     const formDocMessageDiv = document.getElementById('formDocMessage');
     const btnGerarNovoDoc = document.querySelector('.actions-bar .btn-gerar-novo');
 
+    // Elementos do Filtro
+    const filtroNomeInput = document.getElementById('filtroNome');
+    const filtroDataInput = document.getElementById('filtroData');
+    const filtroStatusInput = document.getElementById('filtroStatus');
+    const btnAplicarFiltros = document.getElementById('btnAplicarFiltros');
+    const btnLimparFiltros = document.getElementById('btnLimparFiltros');
+
+    let todosOsDocumentos = []; // Para armazenar a lista completa de documentos
+
     // VariÃ¡veis globais da página (se existirem)
     // ID_PARCEIRO_LOGADO (definido no HTML da página de listagem indicadores-parceiro.php)
     // DOCUMENTO_UID_ATUAL (definido no HTML da página do formulário formulario-indicacao.php)
@@ -64,8 +73,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     async function carregarDocumentos() {
         if (!listaDocumentosTableBody || typeof ID_PARCEIRO_LOGADO === 'undefined') return;
-        // The initial "Carregando..." message is already in the HTML tbody.
-        // We will replace it if data is fetched or an error occurs.
+        listaDocumentosTableBody.innerHTML = `<tr><td colspan="5" style="text-align:center;">Carregando documentos...</td></tr>`; // Show loading message immediately
 
         try {
             const response = await fetch('api/gerenciar_documentos_indicacao.php', {
@@ -78,94 +86,156 @@ document.addEventListener('DOMContentLoaded', function() {
 
             if (!result.success) {
                  listaDocumentosTableBody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:red;">${escapeHTML(result.message)}</td></tr>`;
+                 todosOsDocumentos = []; // Limpa em caso de erro
                  return;
             }
-            if (!result.data || result.data.length === 0) {
+            if (!result.data) { // Verifica se data existe, mesmo que vazia
                 listaDocumentosTableBody.innerHTML = `<tr><td colspan="5" style="text-align:center;">Você ainda não gerou nenhum documento de indicação.</td></tr>`;
+                todosOsDocumentos = []; // Limpa se não houver dados
                 return;
             }
 
-            listaDocumentosTableBody.innerHTML = ''; // Clear loading message or previous content
-            result.data.forEach(doc => {
-                const tr = document.createElement('tr');
-                const linkDoc = `formulario-indicacao.php?uid=${doc.documento_uid}`;
-
-                const tdNome = tr.insertCell();
-                tdNome.textContent = escapeHTML(doc.nome_documento) || 'Documento sem nome';
-                // It might be good to allow editing the name via an icon in actions later.
-                // For now, clicking the name could lead to details, or it's just text.
-
-                const tdAgente = tr.insertCell();
-                tdAgente.textContent = escapeHTML(doc.ag_nome_razao_social) || 'Pendente';
-
-                const tdStatus = tr.insertCell();
-                tdStatus.textContent = escapeHTML(doc.status_documento);
-
-                const tdCriadoEm = tr.insertCell();
-                tdCriadoEm.textContent = new Date(doc.data_criacao).toLocaleDateString();
-
-                const tdAcoes = tr.insertCell();
-                tdAcoes.style.textAlign = 'center'; // Center align action buttons
-
-                let viewBtnHtml = `<a href="${linkDoc}" class="btn-action btn-view-details" title="Editar/Ver Detalhes"><i class="fas fa-eye"></i></a>`;
-                
-                let finalizarBtnHtml = '';
-                if (doc.status_documento !== 'Finalizado pelo Parceiro' && doc.status_documento !== 'Assinado') {
-                    finalizarBtnHtml = `<button class="btn-action btn-finalizar-parceiro" data-uid="${doc.documento_uid}" title="Marcar como finalizado"><i class="fas fa-check-circle"></i></button>`;
-                } else {
-                    // Optional: show disabled/static icon if finalized
-                    // finalizarBtnHtml = `<button class="btn-action" disabled title="Finalizado pelo Parceiro"><i class="fas fa-check-circle" style="color: green;"></i></button>`;
-                }
-
-                let pdfBtnHtml = `<button class="btn-action btn-baixar-pdf-parceiro" data-uid="${doc.documento_uid}" title="Baixar PDF"><i class="fas fa-file-pdf"></i></button>`;
-                
-                let deleteBtnHtml = `<button class="btn-action btn-delete-documento" data-uid="${doc.documento_uid}" title="Excluir Documento"><i class="fas fa-trash"></i></button>`;
-                
-                let gerarWordBtnHtml = '';
-                if (doc.status_documento === 'Finalizado pelo Parceiro' || doc.status_documento === 'Assinado') {
-                    gerarWordBtnHtml = `<button class="btn-action btn-gerar-word" data-uid="${doc.documento_uid}" title="Gerar Documento Word"><i class="fas fa-file-word"></i></button>`;
-                }
-                
-                tdAcoes.innerHTML = viewBtnHtml + " " + finalizarBtnHtml + " " + pdfBtnHtml + " " + deleteBtnHtml + " " + gerarWordBtnHtml;
-                // Adding spaces for minimal separation, proper styling should be done via CSS.
-
-                listaDocumentosTableBody.appendChild(tr);
-            });
-
-            // Re-attach Event Listeners for the new buttons
-            document.querySelectorAll('.btn-delete-documento').forEach(button => {
-                button.addEventListener('click', function() {
-                    const docUID = this.dataset.uid;
-                    if (confirm('Tem certeza que deseja excluir este documento? Esta ação não pode ser desfeita.')) {
-                        excluirDocumento(docUID);
-                    }
-                });
-            });
-            // Removed .btn-edit-nome listener as the button is removed. editarNomeDocumento function remains.
-
-            document.querySelectorAll('.btn-finalizar-parceiro').forEach(button => {
-                button.addEventListener('click', function() {
-                    const docUID = this.dataset.uid;
-                    finalizarDocumentoParceiro(docUID, this);
-                });
-            });
-            document.querySelectorAll('.btn-baixar-pdf-parceiro').forEach(button => {
-                button.addEventListener('click', function() {
-                    const docUID = this.dataset.uid;
-                    // Logic for checking status before download can be added here or server-side
-                    window.open(`api/gerar_pdf_documento.php?uid=${docUID}`, '_blank');
-                });
-            });
-            // Note: Event listener for btn-gerar-word will be added in a subsequent step/task.
+            todosOsDocumentos = result.data; // Armazena todos os documentos
+            aplicarFiltrosEExibir(); // Exibe os documentos (filtrados ou todos)
 
         } catch (error) {
             console.error('Erro ao carregar documentos:', error);
+            todosOsDocumentos = []; // Limpa em caso de erro
             if (listaDocumentosTableBody) { // Check if still exists
                 listaDocumentosTableBody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:red;">Erro ao carregar documentos. Tente novamente.</td></tr>`;
             }
         }
     }
+
+    function aplicarFiltrosEExibir() {
+        if (!listaDocumentosTableBody) return;
+
+        const nomeFiltro = filtroNomeInput ? filtroNomeInput.value.toLowerCase() : '';
+        const dataFiltro = filtroDataInput ? filtroDataInput.value : '';
+        const statusFiltro = filtroStatusInput ? filtroStatusInput.value : '';
+
+        const documentosFiltrados = todosOsDocumentos.filter(doc => {
+            const nomeMatch = !nomeFiltro || (doc.nome_documento && doc.nome_documento.toLowerCase().includes(nomeFiltro));
+            
+            let dataMatch = true;
+            if (dataFiltro && doc.data_criacao) {
+                // Comparar apenas a data (YYYY-MM-DD), ignorando a hora
+                const dataDoc = doc.data_criacao.substring(0, 10);
+                dataMatch = dataDoc === dataFiltro;
+            }
+            
+            const statusMatch = !statusFiltro || (doc.status_documento && doc.status_documento === statusFiltro);
+            
+            return nomeMatch && dataMatch && statusMatch;
+        });
+
+        if (documentosFiltrados.length === 0) {
+            listaDocumentosTableBody.innerHTML = `<tr><td colspan="5" style="text-align:center;">Nenhum documento encontrado com os filtros aplicados.</td></tr>`;
+            return;
+        }
+
+        listaDocumentosTableBody.innerHTML = ''; // Clear previous content or 'no documents' message
+        documentosFiltrados.forEach(doc => {
+            const tr = document.createElement('tr');
+            const linkDoc = `formulario-indicacao.php?uid=${doc.documento_uid}`;
+
+            const tdNome = tr.insertCell();
+            tdNome.textContent = escapeHTML(doc.nome_documento) || 'Documento sem nome';
+
+            const tdAgente = tr.insertCell();
+            tdAgente.textContent = escapeHTML(doc.ag_nome_razao_social) || 'Pendente';
+
+            const tdStatus = tr.insertCell();
+            // Adiciona uma classe de status para estilização, se necessário
+            const statusClass = `status-doc status-${doc.status_documento ? doc.status_documento.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') : 'default'}`;
+            tdStatus.innerHTML = `<span class="${statusClass}">${escapeHTML(doc.status_documento)}</span>`;
+
+            const tdCriadoEm = tr.insertCell();
+            tdCriadoEm.textContent = new Date(doc.data_criacao).toLocaleDateString();
+
+            const tdAcoes = tr.insertCell();
+            tdAcoes.style.textAlign = 'center';
+            tdAcoes.classList.add('acoes-cell'); // Adiciona classe para estilização CSS
+
+            let viewBtnHtml = `<a href="${linkDoc}" class="btn-action btn-view-details" title="Editar/Ver Detalhes"><i class="fas fa-eye"></i></a>`;
+            
+            let finalizarBtnHtml = '';
+            const isFinalizado = doc.status_documento === 'Finalizado pelo Parceiro' || doc.status_documento === 'Assinado';
+            if (!isFinalizado) {
+                finalizarBtnHtml = `<button class="btn-action btn-finalizar-parceiro" data-uid="${doc.documento_uid}" title="Marcar como finalizado pelo parceiro"><i class="fas fa-check-circle"></i></button>`;
+            } else {
+                finalizarBtnHtml = `<button class="btn-action btn-finalizar-parceiro" data-uid="${doc.documento_uid}" title="Documento já finalizado/assinado" disabled><i class="fas fa-check-circle"></i></button>`;
+            }
+
+            let pdfBtnHtml = `<button class="btn-action btn-baixar-pdf-parceiro" data-uid="${doc.documento_uid}" title="Baixar PDF (após finalizar)"><i class="fas fa-file-pdf"></i></button>`;
+            
+            let deleteBtnHtml = `<button class="btn-action btn-delete-documento" data-uid="${doc.documento_uid}" title="Excluir Documento"><i class="fas fa-trash"></i></button>`;
+            
+            let gerarWordBtnHtml = '';
+            if (isFinalizado) {
+                gerarWordBtnHtml = `<button class="btn-action btn-gerar-word" data-uid="${doc.documento_uid}" title="Gerar Documento Word"><i class="fas fa-file-word"></i></button>`;
+            }
+            
+            tdAcoes.innerHTML = viewBtnHtml + finalizarBtnHtml + pdfBtnHtml + deleteBtnHtml + gerarWordBtnHtml;
+            // Removido o espaçamento com " " pois o CSS cuidará disso.
+
+            listaDocumentosTableBody.appendChild(tr);
+        });
+
+        // Re-attach Event Listeners for the new buttons
+        attachActionListeners();
+    }
+
+    function attachActionListeners() {
+        document.querySelectorAll('.btn-delete-documento').forEach(button => {
+            button.addEventListener('click', function() {
+                const docUID = this.dataset.uid;
+                if (confirm('Tem certeza que deseja excluir este documento? Esta ação não pode ser desfeita.')) {
+                    excluirDocumento(docUID);
+                }
+            });
+        });
+
+        document.querySelectorAll('.btn-finalizar-parceiro').forEach(button => {
+            button.addEventListener('click', function() {
+                if(this.disabled) return; // Não faz nada se estiver desabilitado
+                const docUID = this.dataset.uid;
+                finalizarDocumentoParceiro(docUID, this);
+            });
+        });
+
+        document.querySelectorAll('.btn-baixar-pdf-parceiro').forEach(button => {
+            button.addEventListener('click', function() {
+                const docUID = this.dataset.uid;
+                window.open(`api/gerar_pdf_documento.php?uid=${docUID}`, '_blank');
+            });
+        });
+
+        document.querySelectorAll('.btn-gerar-word').forEach(button => {
+            button.addEventListener('click', function() {
+                const docUID = this.dataset.uid;
+                if (this.closest('td').querySelector('.btn-finalizar-parceiro[disabled]')) { // Verifica se está finalizado
+                    gerarDocumentoWord(docUID, this); 
+                } else {
+                    alert("O documento precisa ser finalizado antes de gerar o arquivo Word.");
+                }
+            });
+        });
+    }
     
+    if (btnAplicarFiltros) {
+        btnAplicarFiltros.addEventListener('click', aplicarFiltrosEExibir);
+    }
+
+    if (btnLimparFiltros) {
+        btnLimparFiltros.addEventListener('click', () => {
+            if (filtroNomeInput) filtroNomeInput.value = '';
+            if (filtroDataInput) filtroDataInput.value = '';
+            if (filtroStatusInput) filtroStatusInput.value = '';
+            aplicarFiltrosEExibir(); // Recarrega a tabela com todos os documentos
+        });
+    }
+
     async function editarNomeDocumento(uid, novoNome) { 
         if (typeof ID_PARCEIRO_LOGADO === 'undefined') {
             alert("Erro: ID do parceiro não definido."); return;
@@ -561,151 +631,134 @@ document.addEventListener('DOMContentLoaded', function() {
 
 async function gerarDocumentoWord(uid, buttonElement) {
     if (!uid) {
-        alert('UID do documento não encontrado.');
+        alert("UID do documento não fornecido.");
         return;
     }
-
-    const originalButtonContent = buttonElement.innerHTML;
-    buttonElement.disabled = true;
-    buttonElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Gerando...';
+    if (buttonElement) {
+        buttonElement.disabled = true;
+        buttonElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Gerando...';
+    }
 
     try {
-        // 1. Fetch document details
-        const responseDocDetails = await fetch(`api/gerenciar_documentos_indicacao.php?action=get_documento_details_public&uid=${uid}`);
-        if (!responseDocDetails.ok) {
-            throw new Error(`Erro ao buscar detalhes do documento: ${responseDocDetails.statusText}`);
+        const response = await fetch(`api/gerenciar_documentos_indicacao.php?action=get_documento_data_for_word&documento_uid=${uid}`);
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({ message: "Erro ao buscar dados para o Word." }));
+            throw new Error(errorData.message || `Erro HTTP: ${response.status}`);
         }
-        const resultDocDetails = await responseDocDetails.json();
-        if (!resultDocDetails.success || !resultDocDetails.data) {
-            throw new Error(resultDocDetails.message || 'Não foi possível obter os dados do documento.');
-        }
-        const docData = resultDocDetails.data;
+        const result = await response.json();
 
-        // 2. Fetch the .docx template
-        const responseTemplate = await fetch('docx/indicacao.docx'); //
-        if (!responseTemplate.ok) {
-            throw new Error('Erro ao carregar o template Word (docx/indicacao.docx). Verifique o caminho e a disponibilidade do arquivo.'); //
+        if (!result.success) {
+            throw new Error(result.message || "Falha ao obter dados do documento.");
         }
-        const templateArrayBuffer = await responseTemplate.arrayBuffer(); //
 
-        // 3. Create PizZip instance and load template
-        const zip = new PizZip(templateArrayBuffer); //
-        const doc = new window.docxtemplater(zip, { //
-            paragraphLoop: true, //
-            linebreaks: true, //
-            nullGetter: function(part) { //
-                if (part.module === "raw" && part.type === "placeholder") { //
-                    const knownPrefixes = ["AG_", "BANCO_", "DECL_", "OBS_", "PA_", "ITEM_", "PAGAMENTO_TIPO"]; //
-                    if (knownPrefixes.some(prefix => part.value.startsWith(prefix)) || part.value === "PAGAMENTO_TIPO") { //
-                        return ""; //
-                    }
+        const data = result.data;
+        // console.log("Dados para o template Word:", data);
+
+        // Carregar o template .docx
+        // Ajuste o caminho para o seu template
+        const templateResponse = await fetch('docx/TEMPLATE_DOCUMENTO_INDICACAO.docx'); 
+        if (!templateResponse.ok) {
+            throw new Error("Template .docx não encontrado ou não pôde ser carregado.");
+        }
+        const templateContent = await templateResponse.arrayBuffer();
+
+        const zip = new PizZip(templateContent);
+        const doc = new window.docxtemplater(zip, {
+            paragraphLoop: true,
+            linebreaks: true,
+            nullGetter: function(part) { // Lida com valores nulos ou indefinidos
+                if (part.module === "loop" && part.value === null) {
+                    return []; // Retorna array vazio para loops com dados nulos
                 }
-                return ""; //
+                return ""; // Retorna string vazia para outros campos nulos/indefinidos
             }
         });
 
-        // 4. Prepare data for the template
-        const templateData = { //
-            AG_NOME_RAZAO_SOCIAL: docData.ag_nome_razao_social || '', //
-            AG_NOME_FANTASIA: docData.ag_nome_fantasia || '', //
-            AG_CPF_CNPJ: docData.ag_cpf_cnpj || '', //
-            AG_ENDERECO: docData.ag_endereco || '', //
-            AG_COMPLEMENTO: docData.ag_complemento || '', //
-            AG_BAIRRO: docData.ag_bairro || '', //
-            AG_CIDADE: docData.ag_cidade || '', //
-            AG_CEP: docData.ag_cep || '', //
-            AG_UF: docData.ag_uf || '', //
-            AG_REP_LEGAL: docData.ag_representante_legal || '', //
-            AG_CARGO: docData.ag_cargo || '', //
-            AG_CPF_REP: docData.ag_cpf_representante || '', //
-            AG_EMAIL: docData.ag_email || '', //
-            AG_TELEFONE: docData.ag_telefone || '', //
-            BANCO_NOME_TITULAR: docData.banco_nome_razao_social || '', //
-            BANCO_CPF_CNPJ_TITULAR: docData.banco_cpf_cnpj || '', //
-            BANCO_NOME: docData.banco_nome || '', //
-            BANCO_AGENCIA: docData.banco_agencia || '', //
-            BANCO_CONTA: docData.banco_conta || '', //
-            BANCO_TIPO_CONTA: docData.banco_tipo_conta || '', //
-            BANCO_CHAVE_PIX: docData.banco_chave_pix || '', //
-            PAGAMENTO_TIPO: docData.pagamento_tipo || '', //
-            OBS_PA_INDICACOES: docData.obs_anotacoes || '', //
-            PA_INDICACOES: docData.obs_pa_indicacoes || '', //
-            DECL_LOCAL: docData.decl_local || '', //
-            DECL_DATA: docData.decl_data ? new Date(docData.decl_data).toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : '', //
-            DECL_RESP_PARCEIRO: docData.decl_resp_parceiro || '', //
-            DECL_RESP_PA: docData.fetched_decl_resp_pa || '', //
-            TABELA_PRODUTOS: [] //
+        // Mapeamento dos dados para o template
+        const templateData = {
+            // Dados do Cabeçalho do Documento
+            DOC_UID: data.documento_uid || "",
+            DOC_NOME: data.nome_documento || "",
+            DOC_DATA_CRIACAO: data.data_criacao ? new Date(data.data_criacao).toLocaleDateString('pt-BR') : "",
+            DOC_STATUS: data.status_documento || "",
+
+            // Dados do Parceiro (quem criou/gerenciou o link)
+            PARCEIRO_NOME: data.parceiro_info.nome_completo || data.parceiro_info.username || "",
+            PARCEIRO_EMAIL: data.parceiro_info.email || "",
+            PARCEIRO_TELEFONE: data.parceiro_info.telefone || "", 
+
+            // Dados do Agente Indicador (quem preencheu o formulário)
+            AG_NOME_RAZAO_SOCIAL: data.ag_nome_razao_social || "",
+            AG_CPF_CNPJ: data.ag_cpf_cnpj || "",
+            AG_EMAIL: data.ag_email || "",
+            AG_TELEFONE: data.ag_telefone || "",
+            AG_ENDERECO_COMPLETO: data.ag_endereco_completo || "",
+            AG_CEP: data.ag_cep || "",
+            AG_CIDADE: data.ag_cidade || "",
+            AG_ESTADO: data.ag_estado || "",
+            AG_BANCO_NOME: data.ag_banco_nome || "",
+            AG_BANCO_AGENCIA: data.ag_banco_agencia || "",
+            AG_BANCO_CONTA: data.ag_banco_conta || "",
+            AG_TIPO_CONTA: data.ag_tipo_conta || "",
+            AG_PIX: data.ag_pix || "",
+
+            // Dados do Cliente Indicado
+            CLI_NOME_RAZAO_SOCIAL: data.cli_nome_razao_social || "",
+            CLI_CPF_CNPJ: data.cli_cpf_cnpj || "",
+            CLI_EMAIL: data.cli_email || "",
+            CLI_TELEFONE: data.cli_telefone || "",
+            CLI_PRODUTO_INTERESSE: data.cli_produto_interesse || "",
+            CLI_OBSERVACOES: data.cli_observacoes || "",
+
+            // Tabela de Valores (se aplicável)
+            // Verifique se 'tabela_valores' existe e não é uma string vazia ou null
+            tabela_valores: (data.tabela_valores && typeof data.tabela_valores === 'object' && data.tabela_valores.length > 0) ? data.tabela_valores.map(item => ({
+                ...item,
+                valor_publico_formatado: typeof item.valor_publico === 'number' ? item.valor_publico.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : (item.valor_publico || ""),
+                valor_parceiro_formatado: typeof item.valor_parceiro === 'number' ? item.valor_parceiro.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : (item.valor_parceiro || "")
+            })) : [],
+            // Adiciona uma flag para saber se a tabela tem itens, para condicionais no template
+            tem_tabela_valores: (data.tabela_valores && typeof data.tabela_valores === 'object' && data.tabela_valores.length > 0),
+
+            // Dados do Responsável pela Assinatura
+            RESP_ASSINATURA_NOME: data.resp_assinatura_nome || "",
+            RESP_ASSINATURA_CPF: data.resp_assinatura_cpf || "",
+            RESP_ASSINATURA_EMAIL: data.resp_assinatura_email || "",
+
+            // Data de assinatura (se houver)
+            DOC_DATA_ASSINATURA: data.data_assinatura ? new Date(data.data_assinatura).toLocaleDateString('pt-BR') : "PENDENTE"
         };
 
-        if (docData.tabela_valores_json) { //
-            const tabelaValores = JSON.parse(docData.tabela_valores_json); //
-            templateData.TABELA_PRODUTOS = tabelaValores //
-                .filter(item => item.visivel !== false && item.visivel !== 'false') //
-                .map(item => ({ //
-                    ITEM_PRODUTO_SERVICO: item.produto || '', //
-                    ITEM_CUSTO_JED: item.custo_jed || '', //
-                    ITEM_VENDA_CLIENTE_FINAL: item.venda_cliente_final || '' //
-                }));
-        }
+        // console.log("Dados formatados para o template:", templateData);
 
-        doc.setData(templateData); //
-        doc.render(); //
+        doc.setData(templateData);
+        doc.render();
 
-        const out = doc.getZip().generate({ //
-            type: 'blob', //
-            mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', //
-        });
+        const out = doc.getZip().generate({ type: 'blob', mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
+        
+        // Usar o nome do documento para o arquivo .docx, se disponível, senão um nome padrão
+        const nomeArquivo = (data.nome_documento || "Documento_Indicacao").replace(/[^a-z0-9_.-]/gi, '_') + ".docx";
+        saveAs(out, nomeArquivo);
 
-        let fileName = "indicacao_documento.docx"; //
-        if (docData.nome_documento) { //
-            const sanitizedName = docData.nome_documento.replace(/[^\w.-]/gi, '_'); //
-            fileName = `indicacao_${sanitizedName}_${uid.substring(0,8)}.docx`; // Nome de arquivo mais único
-        }
-
-        // 5. Salva no computador do usuário (funcionalidade existente)
-        saveAs(out, fileName); //
-
-        // 6. Envia para o servidor para salvar na pasta /documentos
-        const formData = new FormData();
-        formData.append('documento_word', out, fileName); // Anexa o blob com seu nome de arquivo
-        formData.append('documento_uid', uid);
-        formData.append('action', 'save_word_document'); // Ação para o script PHP
-        formData.append('fileName', fileName); // Envia o nome do arquivo desejado
-
-        if (typeof ID_PARCEIRO_LOGADO !== 'undefined') { //
-             formData.append('parceiro_id', ID_PARCEIRO_LOGADO); //
-        }
-
-        try {
-            const responseSaveServer = await fetch('api/gerenciar_documentos_indicacao.php', {
-                method: 'POST',
-                body: formData,
-            });
-            const resultSaveServer = await responseSaveServer.json();
-
-            if (responseSaveServer.ok && resultSaveServer.success) {
-                alert(resultSaveServer.message || `Documento "${fileName}" salvo no servidor com sucesso!`);
-            } else {
-                alert(resultSaveServer.message || `Erro ao salvar o documento "${fileName}" no servidor.`);
-            }
-        } catch (serverSaveError) {
-            console.error('Erro ao tentar salvar documento no servidor:', serverSaveError);
-            alert(`Erro de comunicação ao tentar salvar o documento "${fileName}" no servidor.`);
+        // Mostrar mensagem de sucesso
+        if (typeof showGlobalTempMessage === 'function') {
+            showGlobalTempMessage('Documento Word gerado com sucesso!', 'success');
+        } else {
+            alert('Documento Word gerado com sucesso!');
         }
 
     } catch (error) {
-        console.error('Erro ao gerar documento Word:', error); //
-        let userMessage = 'Erro ao gerar documento Word.'; //
-        if (error.message.includes("template Word")) { //
-            userMessage = `Erro ao carregar o template Word (${error.message}). Verifique se o arquivo 'docx/indicacao.docx' existe no servidor.`; //
-        } else if (error.message.includes("dados do documento")) { //
-            userMessage = `Erro ao buscar dados do documento: ${error.message}.`; //
+        console.error("Erro ao gerar documento Word:", error);
+        // alert(`Erro ao gerar documento Word: ${error.message}`);
+        if (typeof showGlobalTempMessage === 'function') {
+            showGlobalTempMessage(`Erro ao gerar Word: ${error.message}`, 'error');
         } else {
-            userMessage = `Ocorreu um erro inesperado: ${error.message}`; //
+            alert(`Erro ao gerar Word: ${error.message}`);
         }
-        alert(userMessage); //
     } finally {
-        buttonElement.disabled = false; //
-        buttonElement.innerHTML = originalButtonContent; //
+        if (buttonElement) {
+            buttonElement.disabled = false;
+            buttonElement.innerHTML = '<i class="fas fa-file-word"></i> Gerar Word'; // Restaura o botão
+        }
     }
 }

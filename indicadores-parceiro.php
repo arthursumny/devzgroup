@@ -43,6 +43,38 @@ $parceiroId = $_SESSION['user_id'];
             <a href="formulario-indicacao.php" class="btn btn-primary btn-gerar-novo"><i class="fas fa-plus-circle"></i> Gerar Novo Documento</a>
         </div>
 
+        <section class="filtros-documentos-wrapper">
+            <h2>Filtrar Documentos</h2>
+            <div class="filtros-grid">
+                <div class="filtro-item">
+                    <label for="filtroNome">Nome do Documento</label>
+                    <input type="text" id="filtroNome" name="filtroNome" placeholder="Digite o nome...">
+                </div>
+                <div class="filtro-item">
+                    <label for="filtroData">Data de Criação</label>
+                    <input type="date" id="filtroData" name="filtroData">
+                </div>
+                <div class="filtro-item">
+                    <label for="filtroStatus">Status</label>
+                    <select id="filtroStatus" name="filtroStatus">
+                        <option value="">Todos</option>
+                        <option value="Pendente de Preenchimento">Pendente de Preenchimento</option>
+                        <option value="Em análise">Em análise</option>
+                        <option value="Aguardando Cliente">Aguardando Cliente</option>
+                        <option value="Finalizado pelo Parceiro">Finalizado pelo Parceiro</option>
+                        <option value="Assinado">Assinado</option>
+                        <option value="Concluído">Concluído</option>
+                        <option value="Rejeitado">Rejeitado</option>
+                        {/* Adicionar mais status conforme necessário */}
+                    </select>
+                </div>
+            </div>
+            <div class="filtro-actions">
+                <button id="btnAplicarFiltros" class="btn btn-primary"><i class="fas fa-filter"></i> Aplicar Filtros</button>
+                <button id="btnLimparFiltros" class="btn btn-secondary"><i class="fas fa-times"></i> Limpar Filtros</button>
+            </div>
+        </section>
+
         <section class="lista-documentos-section">
             <h2>Documentos Salvos</h2>
             <table id="listaDocumentosTable" class="table-documentos">
