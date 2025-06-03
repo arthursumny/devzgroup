@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     let todosOsDocumentos = []; // Para armazenar a lista completa de documentos
 
-    // VariÃ¡veis globais da página (se existirem)
+    // Variáveis globais da página (se existirem)
     // ID_PARCEIRO_LOGADO (definido no HTML da página de listagem indicadores-parceiro.php)
     // DOCUMENTO_UID_ATUAL (definido no HTML da página do formulário formulario-indicacao.php)
     // IS_PARCEIRO_DONO (definido no HTML da página do formulário formulario-indicacao.php)
@@ -38,7 +38,7 @@ document.addEventListener('DOMContentLoaded', function() {
         return String(str).replace(/[&<>"']/g, match => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[match]);
     }
 
-    // --- LÃ³gica para indicadores-parceiro.php (Listagem) ---
+    // --- Lógica para indicadores-parceiro.php (Listagem) ---
     if (btnGerarNovoDoc && typeof ID_PARCEIRO_LOGADO !== 'undefined') {
         btnGerarNovoDoc.addEventListener('click', async function(event) {
             event.preventDefault();
@@ -260,7 +260,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     async function excluirDocumento(uid) {
         if (typeof ID_PARCEIRO_LOGADO === 'undefined') {
-            alert("Erro: ID do parceiro não definido para exclusÃ£o."); return;
+            alert("Erro: ID do parceiro não definido para exclusão."); return;
         }
         try {
             const response = await fetch('api/gerenciar_documentos_indicacao.php', {
@@ -270,7 +270,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
             const result = await response.json();
             if (result.success) {
-                alert(result.message || 'Documento excluÃ­do com sucesso!');
+                alert(result.message || 'Documento excluído com sucesso!');
                 if (listaDocumentosTableBody) { carregarDocumentos(); } // Target updated
             } else {
                 alert(result.message || 'Erro ao excluir documento.');
@@ -357,7 +357,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (formDocumento.elements[key].type === 'date' && dados[key]) {
         formDocumento.elements[key].value = dados[key].split('T')[0];
         } else if (formDocumento.elements[key].type === 'select-one' && formDocumento.elements[key].name === 'pagamento_tipo') {
-        formDocumento.elements[key].value = dados[key] || 'Split'; // PadrÃ£o se nulo
+        formDocumento.elements[key].value = dados[key] || 'Split'; // Padrão se nulo
         }
         else {
         formDocumento.elements[key].value = dados[key] || '';
@@ -416,7 +416,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     
-    // Atualizar campos de responsÃ¡vel legal (display)
+    // Atualizar campos de responsável legal (display)
     const respParceiroDisplay = document.getElementById('decl_resp_parceiro_display');
     if (respParceiroDisplay) {
     const nomeRep = formDocumento.elements['ag_representante_legal'].value;
@@ -634,113 +634,119 @@ async function gerarDocumentoWord(uid, buttonElement) {
         alert("UID do documento não fornecido.");
         return;
     }
+    const originalButtonContent = buttonElement ? buttonElement.innerHTML : '<i class="fas fa-file-word"></i>';
     if (buttonElement) {
         buttonElement.disabled = true;
         buttonElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Gerando...';
     }
 
     try {
-        const response = await fetch(`api/gerenciar_documentos_indicacao.php?action=get_documento_data_for_word&documento_uid=${uid}`);
-        if (!response.ok) {
-            const errorData = await response.json().catch(() => ({ message: "Erro ao buscar dados para o Word." }));
-            throw new Error(errorData.message || `Erro HTTP: ${response.status}`);
+        // 1. Fetch document details (Restaurado para a action anterior)
+        const responseDocDetails = await fetch(`api/gerenciar_documentos_indicacao.php?action=get_documento_details_public&uid=${uid}`);
+        if (!responseDocDetails.ok) {
+            const errorText = await responseDocDetails.text();
+            throw new Error(`Erro ao buscar detalhes do documento: ${responseDocDetails.status} ${errorText}`);
         }
-        const result = await response.json();
-
-        if (!result.success) {
-            throw new Error(result.message || "Falha ao obter dados do documento.");
+        const resultDocDetails = await responseDocDetails.json();
+        if (!resultDocDetails.success || !resultDocDetails.data) {
+            throw new Error(resultDocDetails.message || 'Não foi possível obter os dados do documento.');
         }
+        const docData = resultDocDetails.data;
 
-        const data = result.data;
-        // console.log("Dados para o template Word:", data);
-
-        // Carregar o template .docx
-        // Ajuste o caminho para o seu template
-        const templateResponse = await fetch('docx/TEMPLATE_DOCUMENTO_INDICACAO.docx'); 
-        if (!templateResponse.ok) {
-            throw new Error("Template .docx não encontrado ou não pôde ser carregado.");
+        // 2. Fetch the .docx template (Restaurado para o template anterior)
+        const responseTemplate = await fetch('docx/indicacao.docx'); 
+        if (!responseTemplate.ok) {
+            throw new Error('Erro ao carregar o template Word (docx/indicacao.docx). Verifique o caminho e a disponibilidade do arquivo.');
         }
-        const templateContent = await templateResponse.arrayBuffer();
+        const templateArrayBuffer = await responseTemplate.arrayBuffer();
 
-        const zip = new PizZip(templateContent);
+        // 3. Create PizZip instance and load template
+        const zip = new PizZip(templateArrayBuffer);
         const doc = new window.docxtemplater(zip, {
             paragraphLoop: true,
             linebreaks: true,
-            nullGetter: function(part) { // Lida com valores nulos ou indefinidos
-                if (part.module === "loop" && part.value === null) {
-                    return []; // Retorna array vazio para loops com dados nulos
+            // Restaurado nullGetter anterior
+            nullGetter: function(part) { 
+                if (part.module === "raw" && part.type === "placeholder") { 
+                    const knownPrefixes = ["AG_", "BANCO_", "DECL_", "OBS_", "PA_", "ITEM_", "PAGAMENTO_TIPO"]; 
+                    if (knownPrefixes.some(prefix => part.value.startsWith(prefix)) || part.value === "PAGAMENTO_TIPO") { 
+                        return ""; 
+                    }
                 }
-                return ""; // Retorna string vazia para outros campos nulos/indefinidos
+                // Adicionada verificação para loops, similar à versão mais nova, mas adaptada
+                if (part.module === "loop" && (part.value === null || typeof part.value === 'undefined')) {
+                    return []; 
+                }
+                return ""; 
             }
         });
 
-        // Mapeamento dos dados para o template
-        const templateData = {
-            // Dados do Cabeçalho do Documento
-            DOC_UID: data.documento_uid || "",
-            DOC_NOME: data.nome_documento || "",
-            DOC_DATA_CRIACAO: data.data_criacao ? new Date(data.data_criacao).toLocaleDateString('pt-BR') : "",
-            DOC_STATUS: data.status_documento || "",
-
-            // Dados do Parceiro (quem criou/gerenciou o link)
-            PARCEIRO_NOME: data.parceiro_info.nome_completo || data.parceiro_info.username || "",
-            PARCEIRO_EMAIL: data.parceiro_info.email || "",
-            PARCEIRO_TELEFONE: data.parceiro_info.telefone || "", 
-
-            // Dados do Agente Indicador (quem preencheu o formulário)
-            AG_NOME_RAZAO_SOCIAL: data.ag_nome_razao_social || "",
-            AG_CPF_CNPJ: data.ag_cpf_cnpj || "",
-            AG_EMAIL: data.ag_email || "",
-            AG_TELEFONE: data.ag_telefone || "",
-            AG_ENDERECO_COMPLETO: data.ag_endereco_completo || "",
-            AG_CEP: data.ag_cep || "",
-            AG_CIDADE: data.ag_cidade || "",
-            AG_ESTADO: data.ag_estado || "",
-            AG_BANCO_NOME: data.ag_banco_nome || "",
-            AG_BANCO_AGENCIA: data.ag_banco_agencia || "",
-            AG_BANCO_CONTA: data.ag_banco_conta || "",
-            AG_TIPO_CONTA: data.ag_tipo_conta || "",
-            AG_PIX: data.ag_pix || "",
-
-            // Dados do Cliente Indicado
-            CLI_NOME_RAZAO_SOCIAL: data.cli_nome_razao_social || "",
-            CLI_CPF_CNPJ: data.cli_cpf_cnpj || "",
-            CLI_EMAIL: data.cli_email || "",
-            CLI_TELEFONE: data.cli_telefone || "",
-            CLI_PRODUTO_INTERESSE: data.cli_produto_interesse || "",
-            CLI_OBSERVACOES: data.cli_observacoes || "",
-
-            // Tabela de Valores (se aplicável)
-            // Verifique se 'tabela_valores' existe e não é uma string vazia ou null
-            tabela_valores: (data.tabela_valores && typeof data.tabela_valores === 'object' && data.tabela_valores.length > 0) ? data.tabela_valores.map(item => ({
-                ...item,
-                valor_publico_formatado: typeof item.valor_publico === 'number' ? item.valor_publico.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : (item.valor_publico || ""),
-                valor_parceiro_formatado: typeof item.valor_parceiro === 'number' ? item.valor_parceiro.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : (item.valor_parceiro || "")
-            })) : [],
-            // Adiciona uma flag para saber se a tabela tem itens, para condicionais no template
-            tem_tabela_valores: (data.tabela_valores && typeof data.tabela_valores === 'object' && data.tabela_valores.length > 0),
-
-            // Dados do Responsável pela Assinatura
-            RESP_ASSINATURA_NOME: data.resp_assinatura_nome || "",
-            RESP_ASSINATURA_CPF: data.resp_assinatura_cpf || "",
-            RESP_ASSINATURA_EMAIL: data.resp_assinatura_email || "",
-
-            // Data de assinatura (se houver)
-            DOC_DATA_ASSINATURA: data.data_assinatura ? new Date(data.data_assinatura).toLocaleDateString('pt-BR') : "PENDENTE"
+        // 4. Prepare data for the template (Restaurado para a estrutura de dados anterior)
+        const templateData = { 
+            AG_NOME_RAZAO_SOCIAL: docData.ag_nome_razao_social || '', 
+            AG_NOME_FANTASIA: docData.ag_nome_fantasia || '', 
+            AG_CPF_CNPJ: docData.ag_cpf_cnpj || '', 
+            AG_ENDERECO: docData.ag_endereco || '', 
+            AG_COMPLEMENTO: docData.ag_complemento || '', 
+            AG_BAIRRO: docData.ag_bairro || '', 
+            AG_CIDADE: docData.ag_cidade || '', 
+            AG_CEP: docData.ag_cep || '', 
+            AG_UF: docData.ag_uf || '', 
+            AG_REP_LEGAL: docData.ag_representante_legal || '', 
+            AG_CARGO: docData.ag_cargo || '', 
+            AG_CPF_REP: docData.ag_cpf_representante || '', 
+            AG_EMAIL: docData.ag_email || '', 
+            AG_TELEFONE: docData.ag_telefone || '', 
+            BANCO_NOME_TITULAR: docData.banco_nome_razao_social || '', 
+            BANCO_CPF_CNPJ_TITULAR: docData.banco_cpf_cnpj || '', 
+            BANCO_NOME: docData.banco_nome || '', 
+            BANCO_AGENCIA: docData.banco_agencia || '', 
+            BANCO_CONTA: docData.banco_conta || '', 
+            BANCO_TIPO_CONTA: docData.banco_tipo_conta || '', 
+            BANCO_CHAVE_PIX: docData.banco_chave_pix || '', 
+            PAGAMENTO_TIPO: docData.pagamento_tipo || '', 
+            OBS_PA_INDICACOES: docData.obs_anotacoes || '', 
+            PA_INDICACOES: docData.obs_pa_indicacoes || '', 
+            DECL_LOCAL: docData.decl_local || '', 
+            DECL_DATA: docData.decl_data ? new Date(docData.decl_data).toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : '', 
+            DECL_RESP_PARCEIRO: docData.decl_resp_parceiro || '', 
+            DECL_RESP_PA: docData.fetched_decl_resp_pa || '', 
+            TABELA_PRODUTOS: [] 
         };
+ 
+        if (docData.tabela_valores_json) { 
+            const tabelaValores = JSON.parse(docData.tabela_valores_json); 
+            templateData.TABELA_PRODUTOS = tabelaValores 
+                .filter(item => item.visivel !== false && item.visivel !== 'false') 
+                .map(item => ({ 
+                    ITEM_PRODUTO_SERVICO: item.produto || '', 
+                    ITEM_CUSTO_JED: item.custo_jed || '', 
+                    ITEM_VENDA_CLIENTE_FINAL: item.venda_cliente_final || '' 
+                }));
+        }
 
-        // console.log("Dados formatados para o template:", templateData);
+        doc.setData(templateData); 
+        doc.render(); 
 
-        doc.setData(templateData);
-        doc.render();
+        const out = doc.getZip().generate({ 
+            type: 'blob', 
+            mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 
+        });
+ 
+        // Restaurada lógica de nome de arquivo anterior
+        let fileName = "indicacao_documento.docx"; 
+        if (docData.nome_documento) { 
+            const sanitizedName = docData.nome_documento.replace(/[^\w.-]/gi, '_'); 
+            fileName = `indicacao_${sanitizedName}_${uid.substring(0,8)}.docx`;
+        }
+ 
+        // 5. Salva no computador do usuário
+        saveAs(out, fileName); 
 
-        const out = doc.getZip().generate({ type: 'blob', mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
-        
-        // Usar o nome do documento para o arquivo .docx, se disponível, senão um nome padrão
-        const nomeArquivo = (data.nome_documento || "Documento_Indicacao").replace(/[^a-z0-9_.-]/gi, '_') + ".docx";
-        saveAs(out, nomeArquivo);
+        // A lógica de salvar no servidor (action=save_word_document) foi removida na refatoração anterior.
+        // Se precisar ser restaurada, precisaremos adicioná-la aqui.
+        // Por ora, focamos em fazer o download funcionar.
 
-        // Mostrar mensagem de sucesso
         if (typeof showGlobalTempMessage === 'function') {
             showGlobalTempMessage('Documento Word gerado com sucesso!', 'success');
         } else {
@@ -749,16 +755,24 @@ async function gerarDocumentoWord(uid, buttonElement) {
 
     } catch (error) {
         console.error("Erro ao gerar documento Word:", error);
-        // alert(`Erro ao gerar documento Word: ${error.message}`);
+        let userMessage = 'Erro ao gerar documento Word.'; 
+        if (error.message && error.message.includes("template Word")) { 
+            userMessage = `Erro ao carregar o template Word (${error.message}). Verifique se o arquivo 'docx/indicacao.docx' existe no servidor.`; 
+        } else if (error.message && error.message.includes("dados do documento")) { 
+            userMessage = `Erro ao buscar dados do documento: ${error.message}.`; 
+        } else if (error.message) {
+            userMessage = `Ocorreu um erro inesperado: ${error.message}`; 
+        }
+        
         if (typeof showGlobalTempMessage === 'function') {
-            showGlobalTempMessage(`Erro ao gerar Word: ${error.message}`, 'error');
+            showGlobalTempMessage(userMessage, 'error');
         } else {
-            alert(`Erro ao gerar Word: ${error.message}`);
+            alert(userMessage);
         }
     } finally {
         if (buttonElement) {
             buttonElement.disabled = false;
-            buttonElement.innerHTML = '<i class="fas fa-file-word"></i> Gerar Word'; // Restaura o botão
+            buttonElement.innerHTML = originalButtonContent;
         }
     }
 }
