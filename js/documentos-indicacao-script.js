@@ -207,7 +207,7 @@ document.addEventListener('DOMContentLoaded', function() {
         document.querySelectorAll('.btn-baixar-pdf-parceiro').forEach(button => {
             button.addEventListener('click', function() {
                 const docUID = this.dataset.uid;
-                window.open(`api/gerar_pdf_documento.php?uid=${docUID}`, '_blank');
+                gerarPdfDoWord(`api/gerar_pdf_documento.php?uid=${docUID}`);
             });
         });
 
@@ -774,5 +774,81 @@ async function gerarDocumentoWord(uid, buttonElement) {
             buttonElement.disabled = false;
             buttonElement.innerHTML = originalButtonContent;
         }
+    }
+}
+
+async function gerarPdfDoWord(urlParaBuscarDocx) {
+    console.log("Tentando buscar DOCX de:", urlParaBuscarDocx);
+    try {
+        // Etapa 1: Buscar o arquivo .docx do servidor
+        const response = await fetch(urlParaBuscarDocx);
+        console.log("Resposta recebida do servidor:", response);
+
+        if (!response.ok) {
+            let errorBody = "Não foi possível ler o corpo da resposta de erro.";
+            try {
+                errorBody = await response.text();
+            } catch (e) {
+                console.warn("Falha ao tentar ler o corpo da resposta de erro:", e);
+            }
+            console.error("Detalhes do erro da resposta:", {
+                status: response.status,
+                statusText: response.statusText,
+                url: response.url,
+                headers: Array.from(response.headers.entries()),
+                body: errorBody
+            });
+            throw new Error(`Erro ao buscar o arquivo DOCX: ${response.status} ${response.statusText}. Detalhes: ${errorBody}`);
+        }
+        const docxBlob = await response.blob();
+        console.log("Blob do DOCX recebido:", docxBlob);
+
+        // Etapa 2: Converter DOCX para HTML
+        // O docx2html espera opções, mesmo que vazias, e o segundo argumento é o 'options'
+        // que pode ser, por exemplo, { container: document.createElement("div") }
+        // ou deixar a biblioteca criar um container temporário.
+        // A API de docx2html espera um objeto File ou algo que se comporte como um,
+        // então um Blob deve funcionar.
+        const htmlDocument = await docx2html(docxBlob, {}); // Passando um objeto vazio para options
+
+        // O resultado 'htmlDocument' é um objeto especial.
+        // Precisamos do elemento DOM que ele contém.
+        // De acordo com a doc do docx2html, htmlDocument.content é o DOM.
+        const htmlContentElement = htmlDocument.content;
+
+        // Para que o html2pdf funcione corretamente, o elemento precisa estar anexado ao DOM,
+        // mesmo que invisível, para que os estilos sejam calculados.
+        // Vamos criar um container invisível.
+        const invisibleContainer = document.createElement('div');
+        invisibleContainer.style.position = 'absolute';
+        invisibleContainer.style.left = '-9999px';
+        invisibleContainer.style.top = '-9999px';
+        invisibleContainer.appendChild(htmlContentElement);
+        document.body.appendChild(invisibleContainer);
+
+        // Etapa 3: Converter HTML para PDF e iniciar o download
+        const pdfOptions = {
+            margin: 10, // margens em mm
+            filename: 'documento_convertido.pdf',
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2, useCORS: true }, // useCORS pode ser necessário para imagens
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+
+        // html2pdf pode pegar o elemento DOM diretamente
+        await html2pdf().from(htmlContentElement).set(pdfOptions).save();
+
+        // Limpar o container invisível
+        document.body.removeChild(invisibleContainer);
+        // A API do docx2html também menciona um método release()
+        if (htmlDocument.release) {
+            htmlDocument.release();
+        }
+
+        console.log('PDF gerado e download iniciado.');
+
+    } catch (error) {
+        console.error('Erro detalhado ao gerar PDF:', error);
+        alert('Ocorreu um erro ao gerar o PDF: ' + error.message);
     }
 }
