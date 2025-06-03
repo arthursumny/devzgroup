@@ -166,7 +166,7 @@ document.addEventListener('DOMContentLoaded', function() {
             } else {
                 finalizarBtnHtml = `<button class="btn-action btn-finalizar-parceiro" data-uid="${doc.documento_uid}" title="Documento já finalizado/assinado" disabled><i class="fas fa-check-circle"></i></button>`;
             }
-            
+
             let deleteBtnHtml = `<button class="btn-action btn-delete-documento" data-uid="${doc.documento_uid}" title="Excluir Documento"><i class="fas fa-trash"></i></button>`;
             
             let gerarWordBtnHtml = '';
@@ -180,7 +180,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 baixarPdfBtnHtml = `<button class="btn-action btn-baixar-pdf-direto" data-uid="${doc.documento_uid}" title="Baixar PDF"><i class="fas fa-file-pdf"></i></button>`;
             }
             
-            tdAcoes.innerHTML = viewBtnHtml + finalizarBtnHtml + pdfBtnHtml + deleteBtnHtml + gerarWordBtnHtml + baixarPdfBtnHtml;
+            tdAcoes.innerHTML = viewBtnHtml + finalizarBtnHtml + deleteBtnHtml + gerarWordBtnHtml + baixarPdfBtnHtml;
             // Removido o espaçamento com " " pois o CSS cuidará disso.
 
             listaDocumentosTableBody.appendChild(tr);
@@ -205,13 +205,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 if(this.disabled) return; // Não faz nada se estiver desabilitado
                 const docUID = this.dataset.uid;
                 finalizarDocumentoParceiro(docUID, this);
-            });
-        });
-
-        document.querySelectorAll('.btn-baixar-pdf-parceiro').forEach(button => {
-            button.addEventListener('click', function() {
-                const docUID = this.dataset.uid;
-                gerarPdfDoWord(`api/gerar_pdf_documento.php?uid=${docUID}`);
             });
         });
 
@@ -793,83 +786,7 @@ async function gerarDocumentoWord(uid, buttonElement) {
     }
 }
 
-async function gerarPdfDoWord(urlParaBuscarDocx) {
-    console.log("Tentando buscar DOCX de:", urlParaBuscarDocx);
-    try {
-        // Etapa 1: Buscar o arquivo .docx do servidor
-        const response = await fetch(urlParaBuscarDocx);
-        console.log("Resposta recebida do servidor:", response);
-
-        if (!response.ok) {
-            let errorBody = "Não foi possível ler o corpo da resposta de erro.";
-            try {
-                errorBody = await response.text();
-            } catch (e) {
-                console.warn("Falha ao tentar ler o corpo da resposta de erro:", e);
-            }
-            console.error("Detalhes do erro da resposta:", {
-                status: response.status,
-                statusText: response.statusText,
-                url: response.url,
-                headers: Array.from(response.headers.entries()),
-                body: errorBody
-            });
-            throw new Error(`Erro ao buscar o arquivo DOCX: ${response.status} ${response.statusText}. Detalhes: ${errorBody}`);
-        }
-        const docxBlob = await response.blob();
-        console.log("Blob do DOCX recebido:", docxBlob);
-
-        // Etapa 2: Converter DOCX para HTML
-        // O docx2html espera opções, mesmo que vazias, e o segundo argumento é o 'options'
-        // que pode ser, por exemplo, { container: document.createElement("div") }
-        // ou deixar a biblioteca criar um container temporário.
-        // A API de docx2html espera um objeto File ou algo que se comporte como um,
-        // então um Blob deve funcionar.
-        const htmlDocument = await docx2html(docxBlob, {}); // Passando um objeto vazio para options
-
-        // O resultado 'htmlDocument' é um objeto especial.
-        // Precisamos do elemento DOM que ele contém.
-        // De acordo com a doc do docx2html, htmlDocument.content é o DOM.
-        const htmlContentElement = htmlDocument.content;
-
-        // Para que o html2pdf funcione corretamente, o elemento precisa estar anexado ao DOM,
-        // mesmo que invisível, para que os estilos sejam calculados.
-        // Vamos criar um container invisível.
-        const invisibleContainer = document.createElement('div');
-        invisibleContainer.style.position = 'absolute';
-        invisibleContainer.style.left = '-9999px';
-        invisibleContainer.style.top = '-9999px';
-        invisibleContainer.appendChild(htmlContentElement);
-        document.body.appendChild(invisibleContainer);
-
-        // Etapa 3: Converter HTML para PDF e iniciar o download
-        const pdfOptions = {
-            margin: 10, // margens em mm
-            filename: 'documento_convertido.pdf',
-            image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: { scale: 2, useCORS: true }, // useCORS pode ser necessário para imagens
-            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-        };
-
-        // html2pdf pode pegar o elemento DOM diretamente
-        await html2pdf().from(htmlContentElement).set(pdfOptions).save();
-
-        // Limpar o container invisível
-        document.body.removeChild(invisibleContainer);
-        // A API do docx2html também menciona um método release()
-        if (htmlDocument.release) {
-            htmlDocument.release();
-        }
-
-        console.log('PDF gerado e download iniciado.');
-
-    } catch (error) {
-        console.error('Erro detalhado ao gerar PDF:', error);
-        alert('Ocorreu um erro ao gerar o PDF: ' + error.message);
-    }
-}
-
-// Função para gerar documento Word e depois convertê-lo para PDF
+// Função para gerar documento Word e depois convertê-lo para PDF usando API
 async function gerarDocumentoWordEPdf(uid, buttonElement) {
     if (buttonElement) {
         const originalButtonContent = buttonElement.innerHTML;
@@ -878,7 +795,7 @@ async function gerarDocumentoWordEPdf(uid, buttonElement) {
     }
 
     try {
-        // 1. Buscar dados do documento
+        // 1. Gerar o documento Word
         const responseDocDetails = await fetch(`api/gerenciar_documentos_indicacao.php?action=get_documento_details_public&uid=${uid}`);
         if (!responseDocDetails.ok) {
             throw new Error('Erro ao buscar dados do documento.');
@@ -889,14 +806,12 @@ async function gerarDocumentoWordEPdf(uid, buttonElement) {
         }
         const docData = resultDocDetails.data;
 
-        // 2. Fetch the .docx template
         const responseTemplate = await fetch('docx/indicacao.docx'); 
         if (!responseTemplate.ok) {
-            throw new Error('Erro ao carregar o template Word (docx/indicacao.docx). Verifique o caminho e a disponibilidade do arquivo.');
+            throw new Error('Erro ao carregar o template Word (docx/indicacao.docx).');
         }
         const templateArrayBuffer = await responseTemplate.arrayBuffer();
 
-        // 3. Create PizZip instance and load template
         const zip = new PizZip(templateArrayBuffer);
         const doc = new window.docxtemplater(zip, {
             paragraphLoop: true,
@@ -915,7 +830,6 @@ async function gerarDocumentoWordEPdf(uid, buttonElement) {
             }
         });
 
-        // 4. Prepare data for the template
         const templateData = { 
             AG_NOME_RAZAO_SOCIAL: docData.ag_nome_razao_social || '', 
             AG_NOME_FANTASIA: docData.ag_nome_fantasia || '', 
@@ -962,12 +876,12 @@ async function gerarDocumentoWordEPdf(uid, buttonElement) {
         doc.setData(templateData); 
         doc.render(); 
 
-        const out = doc.getZip().generate({ 
+        const docBlob = doc.getZip().generate({ 
             type: 'blob', 
             mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 
         });
 
-        // Gerar nomes de arquivo para Word e PDF
+        // Gerar nome base para os arquivos
         let baseName = "indicacao_documento";
         if (docData.nome_documento) { 
             const sanitizedName = docData.nome_documento.replace(/[^\w.-]/gi, '_'); 
@@ -977,44 +891,24 @@ async function gerarDocumentoWordEPdf(uid, buttonElement) {
         const wordFileName = `${baseName}.docx`;
         const pdfFileName = `${baseName}.pdf`;
 
-        // 5. Converter o documento Word para HTML usando docx-preview
-        const htmlContentElement = document.createElement('div');
+        // 2. Enviar o documento Word para o servidor para conversão para PDF
+        const formData = new FormData();
+        formData.append('docxFile', docBlob, wordFileName);
+        formData.append('outputFileName', pdfFileName);
         
-        // Usar docx-preview para renderizar o documento
-        await docx.renderAsync(out, htmlContentElement, null, {
-            className: "docx-wrapper",
-            inWrapper: false,
-            ignoreWidth: false,
-            ignoreHeight: false,
-            ignoreFonts: false,
-            breakPages: true,
-            ignoreLastRenderedPageBreak: true,
-            experimental: false,
-            trimXmlDeclaration: true,
-            debug: false
+        const conversionResponse = await fetch('api/converter_docx_para_pdf.php', {
+            method: 'POST',
+            body: formData
         });
-
-        // Adicionando ao DOM temporariamente para o html2pdf
-        const invisibleContainer = document.createElement('div');
-        invisibleContainer.style.position = 'absolute';
-        invisibleContainer.style.left = '-9999px';
-        invisibleContainer.style.top = '-9999px';
-        invisibleContainer.appendChild(htmlContentElement);
-        document.body.appendChild(invisibleContainer);
-
-        // 6. Converter HTML para PDF e iniciar o download
-        const pdfOptions = {
-            margin: 10,
-            filename: pdfFileName,
-            image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: { scale: 2, useCORS: true },
-            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-        };
-
-        await html2pdf().from(htmlContentElement).set(pdfOptions).save();
-
-        // Limpar o container invisível
-        document.body.removeChild(invisibleContainer);
+        
+        if (!conversionResponse.ok) {
+            const errorText = await conversionResponse.text();
+            throw new Error(`Erro na conversão para PDF: ${conversionResponse.status} ${errorText}`);
+        }
+        
+        // 3. Receber o PDF gerado e fazer o download
+        const pdfBlob = await conversionResponse.blob();
+        saveAs(pdfBlob, pdfFileName);
 
         if (typeof showGlobalTempMessage === 'function') {
             showGlobalTempMessage('Documento PDF gerado com sucesso!', 'success');
@@ -1025,11 +919,7 @@ async function gerarDocumentoWordEPdf(uid, buttonElement) {
     } catch (error) {
         console.error("Erro ao gerar documento PDF:", error);
         let userMessage = 'Erro ao gerar documento PDF.'; 
-        if (error.message && error.message.includes("template Word")) { 
-            userMessage = `Erro ao carregar o template Word (${error.message}). Verifique se o arquivo 'docx/indicacao.docx' existe no servidor.`; 
-        } else if (error.message && error.message.includes("dados do documento")) { 
-            userMessage = `Erro ao buscar dados do documento: ${error.message}.`; 
-        } else if (error.message) {
+        if (error.message) {
             userMessage = `Ocorreu um erro inesperado: ${error.message}`; 
         }
         
