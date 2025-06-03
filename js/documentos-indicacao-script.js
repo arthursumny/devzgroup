@@ -166,8 +166,6 @@ document.addEventListener('DOMContentLoaded', function() {
             } else {
                 finalizarBtnHtml = `<button class="btn-action btn-finalizar-parceiro" data-uid="${doc.documento_uid}" title="Documento já finalizado/assinado" disabled><i class="fas fa-check-circle"></i></button>`;
             }
-
-            let pdfBtnHtml = `<button class="btn-action btn-baixar-pdf-parceiro" data-uid="${doc.documento_uid}" title="Baixar PDF (após finalizar)"><i class="fas fa-file-pdf"></i></button>`;
             
             let deleteBtnHtml = `<button class="btn-action btn-delete-documento" data-uid="${doc.documento_uid}" title="Excluir Documento"><i class="fas fa-trash"></i></button>`;
             
@@ -176,7 +174,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 gerarWordBtnHtml = `<button class="btn-action btn-gerar-word" data-uid="${doc.documento_uid}" title="Gerar Documento Word"><i class="fas fa-file-word"></i></button>`;
             }
             
-            tdAcoes.innerHTML = viewBtnHtml + finalizarBtnHtml + pdfBtnHtml + deleteBtnHtml + gerarWordBtnHtml;
+            // Botão para baixar PDF direto
+            let baixarPdfBtnHtml = '';
+            if (isFinalizado) {
+                baixarPdfBtnHtml = `<button class="btn-action btn-baixar-pdf-direto" data-uid="${doc.documento_uid}" title="Baixar PDF"><i class="fas fa-file-pdf"></i></button>`;
+            }
+            
+            tdAcoes.innerHTML = viewBtnHtml + finalizarBtnHtml + pdfBtnHtml + deleteBtnHtml + gerarWordBtnHtml + baixarPdfBtnHtml;
             // Removido o espaçamento com " " pois o CSS cuidará disso.
 
             listaDocumentosTableBody.appendChild(tr);
@@ -218,6 +222,18 @@ document.addEventListener('DOMContentLoaded', function() {
                     gerarDocumentoWord(docUID, this); 
                 } else {
                     alert("O documento precisa ser finalizado antes de gerar o arquivo Word.");
+                }
+            });
+        });
+
+        // Event listener para o botão de baixar PDF diretamente
+        document.querySelectorAll('.btn-baixar-pdf-direto').forEach(button => {
+            button.addEventListener('click', function() {
+                const docUID = this.dataset.uid;
+                if (this.closest('td').querySelector('.btn-finalizar-parceiro[disabled]')) { // Verifica se está finalizado
+                    gerarDocumentoWordEPdf(docUID, this);
+                } else {
+                    alert("O documento precisa ser finalizado antes de gerar o arquivo PDF.");
                 }
             });
         });
@@ -850,5 +866,182 @@ async function gerarPdfDoWord(urlParaBuscarDocx) {
     } catch (error) {
         console.error('Erro detalhado ao gerar PDF:', error);
         alert('Ocorreu um erro ao gerar o PDF: ' + error.message);
+    }
+}
+
+// Função para gerar documento Word e depois convertê-lo para PDF
+async function gerarDocumentoWordEPdf(uid, buttonElement) {
+    if (buttonElement) {
+        const originalButtonContent = buttonElement.innerHTML;
+        buttonElement.disabled = true;
+        buttonElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Gerando PDF...';
+    }
+
+    try {
+        // 1. Buscar dados do documento
+        const responseDocDetails = await fetch(`api/gerenciar_documentos_indicacao.php?action=get_documento_details_public&uid=${uid}`);
+        if (!responseDocDetails.ok) {
+            throw new Error('Erro ao buscar dados do documento.');
+        }
+        const resultDocDetails = await responseDocDetails.json();
+        if (!resultDocDetails.success || !resultDocDetails.data) {
+            throw new Error(resultDocDetails.message || 'Não foi possível obter os dados do documento.');
+        }
+        const docData = resultDocDetails.data;
+
+        // 2. Fetch the .docx template
+        const responseTemplate = await fetch('docx/indicacao.docx'); 
+        if (!responseTemplate.ok) {
+            throw new Error('Erro ao carregar o template Word (docx/indicacao.docx). Verifique o caminho e a disponibilidade do arquivo.');
+        }
+        const templateArrayBuffer = await responseTemplate.arrayBuffer();
+
+        // 3. Create PizZip instance and load template
+        const zip = new PizZip(templateArrayBuffer);
+        const doc = new window.docxtemplater(zip, {
+            paragraphLoop: true,
+            linebreaks: true,
+            nullGetter: function(part) { 
+                if (part.module === "raw" && part.type === "placeholder") { 
+                    const knownPrefixes = ["AG_", "BANCO_", "DECL_", "OBS_", "PA_", "ITEM_", "PAGAMENTO_TIPO"]; 
+                    if (knownPrefixes.some(prefix => part.value.startsWith(prefix)) || part.value === "PAGAMENTO_TIPO") { 
+                        return ""; 
+                    }
+                }
+                if (part.module === "loop" && (part.value === null || typeof part.value === 'undefined')) {
+                    return []; 
+                }
+                return ""; 
+            }
+        });
+
+        // 4. Prepare data for the template
+        const templateData = { 
+            AG_NOME_RAZAO_SOCIAL: docData.ag_nome_razao_social || '', 
+            AG_NOME_FANTASIA: docData.ag_nome_fantasia || '', 
+            AG_CPF_CNPJ: docData.ag_cpf_cnpj || '', 
+            AG_ENDERECO: docData.ag_endereco || '', 
+            AG_COMPLEMENTO: docData.ag_complemento || '', 
+            AG_BAIRRO: docData.ag_bairro || '', 
+            AG_CIDADE: docData.ag_cidade || '', 
+            AG_CEP: docData.ag_cep || '', 
+            AG_UF: docData.ag_uf || '', 
+            AG_REP_LEGAL: docData.ag_representante_legal || '', 
+            AG_CARGO: docData.ag_cargo || '', 
+            AG_CPF_REP: docData.ag_cpf_representante || '', 
+            AG_EMAIL: docData.ag_email || '', 
+            AG_TELEFONE: docData.ag_telefone || '', 
+            BANCO_NOME_TITULAR: docData.banco_nome_razao_social || '', 
+            BANCO_CPF_CNPJ_TITULAR: docData.banco_cpf_cnpj || '', 
+            BANCO_NOME: docData.banco_nome || '', 
+            BANCO_AGENCIA: docData.banco_agencia || '', 
+            BANCO_CONTA: docData.banco_conta || '', 
+            BANCO_TIPO_CONTA: docData.banco_tipo_conta || '', 
+            BANCO_CHAVE_PIX: docData.banco_chave_pix || '', 
+            PAGAMENTO_TIPO: docData.pagamento_tipo || '', 
+            OBS_PA_INDICACOES: docData.obs_anotacoes || '', 
+            PA_INDICACOES: docData.obs_pa_indicacoes || '', 
+            DECL_LOCAL: docData.decl_local || '', 
+            DECL_DATA: docData.decl_data ? new Date(docData.decl_data).toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : '', 
+            DECL_RESP_PARCEIRO: docData.decl_resp_parceiro || '', 
+            DECL_RESP_PA: docData.fetched_decl_resp_pa || '', 
+            TABELA_PRODUTOS: [] 
+        };
+ 
+        if (docData.tabela_valores_json) { 
+            const tabelaValores = JSON.parse(docData.tabela_valores_json); 
+            templateData.TABELA_PRODUTOS = tabelaValores 
+                .filter(item => item.visivel !== false && item.visivel !== 'false') 
+                .map(item => ({ 
+                    ITEM_PRODUTO_SERVICO: item.produto || '', 
+                    ITEM_CUSTO_JED: item.custo_jed || '', 
+                    ITEM_VENDA_CLIENTE_FINAL: item.venda_cliente_final || '' 
+                }));
+        }
+
+        doc.setData(templateData); 
+        doc.render(); 
+
+        const out = doc.getZip().generate({ 
+            type: 'blob', 
+            mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 
+        });
+
+        // Gerar nomes de arquivo para Word e PDF
+        let baseName = "indicacao_documento";
+        if (docData.nome_documento) { 
+            const sanitizedName = docData.nome_documento.replace(/[^\w.-]/gi, '_'); 
+            baseName = `indicacao_${sanitizedName}_${uid.substring(0,8)}`;
+        }
+        
+        const wordFileName = `${baseName}.docx`;
+        const pdfFileName = `${baseName}.pdf`;
+
+        // 5. Converter o documento Word para HTML usando docx-preview
+        const htmlContentElement = document.createElement('div');
+        
+        // Usar docx-preview para renderizar o documento
+        await docx.renderAsync(out, htmlContentElement, null, {
+            className: "docx-wrapper",
+            inWrapper: false,
+            ignoreWidth: false,
+            ignoreHeight: false,
+            ignoreFonts: false,
+            breakPages: true,
+            ignoreLastRenderedPageBreak: true,
+            experimental: false,
+            trimXmlDeclaration: true,
+            debug: false
+        });
+
+        // Adicionando ao DOM temporariamente para o html2pdf
+        const invisibleContainer = document.createElement('div');
+        invisibleContainer.style.position = 'absolute';
+        invisibleContainer.style.left = '-9999px';
+        invisibleContainer.style.top = '-9999px';
+        invisibleContainer.appendChild(htmlContentElement);
+        document.body.appendChild(invisibleContainer);
+
+        // 6. Converter HTML para PDF e iniciar o download
+        const pdfOptions = {
+            margin: 10,
+            filename: pdfFileName,
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2, useCORS: true },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+
+        await html2pdf().from(htmlContentElement).set(pdfOptions).save();
+
+        // Limpar o container invisível
+        document.body.removeChild(invisibleContainer);
+
+        if (typeof showGlobalTempMessage === 'function') {
+            showGlobalTempMessage('Documento PDF gerado com sucesso!', 'success');
+        } else {
+            alert('Documento PDF gerado com sucesso!');
+        }
+
+    } catch (error) {
+        console.error("Erro ao gerar documento PDF:", error);
+        let userMessage = 'Erro ao gerar documento PDF.'; 
+        if (error.message && error.message.includes("template Word")) { 
+            userMessage = `Erro ao carregar o template Word (${error.message}). Verifique se o arquivo 'docx/indicacao.docx' existe no servidor.`; 
+        } else if (error.message && error.message.includes("dados do documento")) { 
+            userMessage = `Erro ao buscar dados do documento: ${error.message}.`; 
+        } else if (error.message) {
+            userMessage = `Ocorreu um erro inesperado: ${error.message}`; 
+        }
+        
+        if (typeof showGlobalTempMessage === 'function') {
+            showGlobalTempMessage(userMessage, 'error');
+        } else {
+            alert(userMessage);
+        }
+    } finally {
+        if (buttonElement) {
+            buttonElement.disabled = false;
+            buttonElement.innerHTML = '<i class="fas fa-file-pdf"></i> Baixar PDF';
+        }
     }
 }

@@ -710,6 +710,16 @@
     transform: scale(1.1);
 }
 
+.table-documentos .acoes-cell .btn-baixar-pdf-direto {
+    color: var(--primary-accent, #e74c3c); /* Usando uma cor destacada para o PDF */
+    border-color: var(--primary-accent, #e74c3c);
+}
+.table-documentos .acoes-cell .btn-baixar-pdf-direto:hover {
+    background-color: var(--primary-accent, #e74c3c);
+    color: var(--white-color, #fff);
+    transform: scale(1.1);
+}
+
 .table-documentos .acoes-cell .btn-action:last-child {
     margin-right: 0; /* Pode não ser estritamente necessário com margens simétricas, mas não prejudica */
 }

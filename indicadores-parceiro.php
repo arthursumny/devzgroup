@@ -21,7 +21,8 @@ $parceiroId = $_SESSION['user_id'];
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pizzip-utils/0.0.5/pizzip-utils.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/docxtemplater/3.38.0/docxtemplater.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/docx2html@1.3.2/dist/docx2html.js"></script>
+    <script src="https://unpkg.com/jszip/dist/jszip.min.js"></script>
+    <script src="https://unpkg.com/docx-preview@0.1.4/dist/docx-preview.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
 <body>
