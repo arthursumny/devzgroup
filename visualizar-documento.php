@@ -82,10 +82,12 @@ function formatarData($data) {
         #documento-para-pdf {
             background-color: white;
             max-width: 210mm;
+            width: 210mm; /* Força uma largura fixa */
             margin: 0 auto;
-            padding: 12mm;
+            padding: 8mm 10mm; /* Reduzido o padding superior/inferior, mantido lateral */
             box-shadow: 0 0 10px rgba(0,0,0,0.1);
             min-height: 297mm;
+            position: relative; /* Adiciona contexto de posicionamento */
         }
         
         .header-title {
@@ -252,6 +254,9 @@ function formatarData($data) {
             body {
                 background-color: white;
                 padding: 0;
+                margin: 0;
+                -webkit-print-color-adjust: exact; /* Garante cores na impressão */
+                print-color-adjust: exact;
             }
             
             .btn-container {
@@ -261,13 +266,21 @@ function formatarData($data) {
             #documento-para-pdf {
                 box-shadow: none;
                 margin: 0;
-                padding: 10mm;
+                padding: 2mm 5mm; /* Reduzido para corresponder às margens do PDF */
                 max-width: none;
+                width: 100%;
+                min-height: auto;
             }
             
             table {
                 page-break-inside: avoid !important;
                 break-inside: avoid !important;
+            }
+            
+            /* Força tamanhos específicos para PDF */
+            * {
+                -webkit-box-sizing: border-box;
+                box-sizing: border-box;
             }
         }
     </style>
@@ -466,30 +479,35 @@ function formatarData($data) {
             const element = document.getElementById('documento-para-pdf');
             const nomeDocumento = "<?php echo 'indicacao_' . preg_replace('/[^a-zA-Z0-9_.-]/', '_', $dados_documento['nome_documento'] ?? 'documento') . '.pdf'; ?>";
             
+            // Configurações otimizadas para o html2pdf
             const opt = {
-                margin:       [0.3, 0.3, 0.3, 0.3],
+                margin:       [2, 5, 8, 5], // [topo, direita, baixo, esquerda] em mm - reduzido topo e laterais
                 filename:     nomeDocumento.replace(/[^a-zA-Z0-9_.-]/g, '_'),
                 image:        { type: 'jpeg', quality: 0.98 },
                 html2canvas:  { 
-                    scale: 1.5,
+                    scale: 2,
                     useCORS: true, 
                     letterRendering: true,
-                    height: window.innerHeight,
-                    width: window.innerWidth
+                    logging: false,
+                    allowTaint: false,
+                    backgroundColor: '#ffffff',
+                    removeContainer: true
                 },
                 jsPDF:        { 
-                    unit: 'in', 
+                    unit: 'mm',
                     format: 'a4', 
                     orientation: 'portrait',
-                    compress: true
-                },
-                pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+                    hotfixes: ['px_scaling'] // Corrige problemas de escala
+                }
             };
 
+            // Desabilitar o botão durante a geração
             this.disabled = true;
             this.innerText = 'Gerando PDF...';
 
-            html2pdf().from(element).set(opt).save().then(() => {
+            // Gerar o PDF com configurações otimizadas
+            html2pdf().set(opt).from(element).save().then(() => {
+                // Reabilitar o botão após a conclusão
                 this.disabled = false;
                 this.innerText = 'Baixar PDF';
             }).catch((error) => {
