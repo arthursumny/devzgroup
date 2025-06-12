@@ -177,7 +177,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // Botão para baixar PDF direto
             let baixarPdfBtnHtml = '';
             if (isFinalizado) {
-                baixarPdfBtnHtml = `<button class="btn-action btn-baixar-pdf-direto" data-uid="${doc.documento_uid}" title="Baixar PDF"><i class="fas fa-file-pdf"></i></button>`;
+                baixarPdfBtnHtml = `<a href="visualizar-documento.php?uid=${doc.documento_uid}" target="_blank" class="btn-action btn-baixar-pdf-direto" title="Visualizar / Baixar PDF"><i class="fas fa-file-pdf"></i></a>`;
             }
             
             tdAcoes.innerHTML = viewBtnHtml + finalizarBtnHtml + deleteBtnHtml + gerarWordBtnHtml + baixarPdfBtnHtml;
@@ -215,18 +215,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     gerarDocumentoWord(docUID, this); 
                 } else {
                     alert("O documento precisa ser finalizado antes de gerar o arquivo Word.");
-                }
-            });
-        });
-
-        // Event listener para o botão de baixar PDF diretamente
-        document.querySelectorAll('.btn-baixar-pdf-direto').forEach(button => {
-            button.addEventListener('click', function() {
-                const docUID = this.dataset.uid;
-                if (this.closest('td').querySelector('.btn-finalizar-parceiro[disabled]')) { // Verifica se está finalizado
-                    gerarDocumentoWordEPdf(docUID, this);
-                } else {
-                    alert("O documento precisa ser finalizado antes de gerar o arquivo PDF.");
                 }
             });
         });
