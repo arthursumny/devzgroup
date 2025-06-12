@@ -266,7 +266,7 @@ function formatarData($data) {
             #documento-para-pdf {
                 box-shadow: none;
                 margin: 0;
-                padding: 2mm 5mm; /* Reduzido para corresponder às margens do PDF */
+                padding: 0mm 2mm; /* Reduzido para corresponder às margens do PDF */
                 max-width: none;
                 width: 100%;
                 min-height: auto;
@@ -481,7 +481,7 @@ function formatarData($data) {
             
             // Configurações otimizadas para o html2pdf
             const opt = {
-                margin:       [2, 5, 8, 5], // [topo, direita, baixo, esquerda] em mm - reduzido topo e laterais
+                margin:       [2, 2, 8, 0], // [topo, direita, baixo, esquerda] em mm - reduzido topo e laterais
                 filename:     nomeDocumento.replace(/[^a-zA-Z0-9_.-]/g, '_'),
                 image:        { type: 'jpeg', quality: 0.98 },
                 html2canvas:  { 
