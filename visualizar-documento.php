@@ -481,10 +481,10 @@ function formatarData($data) {
             
             // Configurações otimizadas para o html2pdf
             const opt = {
-                margin:       [2, 2, 8, 0], // [topo, direita, baixo, esquerda] em mm - reduzido topo e laterais
-                filename:     nomeDocumento.replace(/[^a-zA-Z0-9_.-]/g, '_'),
-                image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { 
+                margin: [2, 2, 8, 0], // [topo, direita, baixo, esquerda] em mm - reduzido topo e laterais
+                filename: nomeDocumento.replace(/[^a-zA-Z0-9_.-]/g, '_'),
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { 
                     scale: 2,
                     useCORS: true, 
                     letterRendering: true,
@@ -493,30 +493,48 @@ function formatarData($data) {
                     backgroundColor: '#ffffff',
                     removeContainer: true
                 },
-                jsPDF:        { 
+                jsPDF: { 
                     unit: 'mm',
                     format: 'a4', 
                     orientation: 'portrait',
-                    hotfixes: ['px_scaling'] // Corrige problemas de escala
-                }
+                    hotfixes: ['px_scaling'],
+                    putOnlyUsedFonts: true,
+                    compress: true
+                },
+                pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
             };
+
+            // Ajustar o elemento para evitar páginas extras
+            const elementStyle = window.getComputedStyle(element);
+            if (elementStyle.minHeight) {
+                element.style.minHeight = 'auto';
+            }
 
             // Desabilitar o botão durante a geração
             this.disabled = true;
             this.innerText = 'Gerando PDF...';
 
             // Gerar o PDF com configurações otimizadas
-            html2pdf().set(opt).from(element).save().then(() => {
-                // Reabilitar o botão após a conclusão
-                this.disabled = false;
-                this.innerText = 'Baixar PDF';
-            }).catch((error) => {
-                console.error('Erro ao gerar PDF:', error);
-                alert('Erro ao gerar PDF. Tente novamente.');
-                this.disabled = false;
-                this.innerText = 'Baixar PDF';
-            });
+            html2pdf()
+                .set(opt)
+                .from(element)
+                .save()
+                .then(() => {
+                    // Reabilitar o botão após a conclusão
+                    this.disabled = false;
+                    this.innerText = 'Baixar PDF';
+                    // Restaurar o min-height se necessário
+                    element.style.minHeight = '297mm';
+                })
+                .catch((error) => {
+                    console.error('Erro ao gerar PDF:', error);
+                    alert('Erro ao gerar PDF. Tente novamente.');
+                    this.disabled = false;
+                    this.innerText = 'Baixar PDF';
+                    // Restaurar o min-height se necessário
+                    element.style.minHeight = '297mm';
+                });
         });
     </script>
 </body>
-</html> 
+</html>
