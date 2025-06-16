@@ -454,7 +454,7 @@ switch ($action) {
                         $nome_final_parceiro_criador = trim($documento_data['username_parceiro_criador']);
                     }
                     // Adicionar o nome determinado ao array de dados para ser usado no JS
-                    $documento_data['fetched_decl_resp_pa'] = $nome_final_parceiro_criador;
+                    $documento_data['decl_resp_pa'] = $nome_final_parceiro_criador;
             
                     echo json_encode(["success" => true, "data" => $documento_data]);
                 } else {

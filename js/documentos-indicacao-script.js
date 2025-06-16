@@ -707,7 +707,7 @@ async function gerarDocumentoWord(uid, buttonElement) {
             DECL_LOCAL: docData.decl_local || '', 
             DECL_DATA: docData.decl_data ? new Date(docData.decl_data).toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : '', 
             DECL_RESP_PARCEIRO: docData.decl_resp_parceiro || '', 
-            DECL_RESP_PA: docData.fetched_decl_resp_pa || '', 
+            DECL_RESP_PA: docData.decl_resp_pa || '', 
             TABELA_PRODUTOS: [] 
         };
  
@@ -846,7 +846,7 @@ async function gerarDocumentoWordEPdf(uid, buttonElement) {
             DECL_LOCAL: docData.decl_local || '', 
             DECL_DATA: docData.decl_data ? new Date(docData.decl_data).toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : '', 
             DECL_RESP_PARCEIRO: docData.decl_resp_parceiro || '', 
-            DECL_RESP_PA: docData.fetched_decl_resp_pa || '', 
+            DECL_RESP_PA: docData.decl_resp_pa || '', 
             TABELA_PRODUTOS: [] 
         };
  

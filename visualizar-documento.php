@@ -21,7 +21,8 @@ if ($conn_vis->connect_error) {
 $conn_vis->set_charset("utf8mb4");
 
 // Buscar dados do documento
-$stmt_doc = $conn_vis->prepare("SELECT d.*, u.nome_completo as nome_parceiro_criador, u.username as username_parceiro_criador 
+$stmt_doc = $conn_vis->prepare("SELECT d.*, u.nome_completo as nome_parceiro_criador, u.username as username_parceiro_criador,
+                                d.decl_resp_pa 
                                 FROM documentos_indicacao d 
                                 JOIN usuarios u ON d.parceiro_id = u.id 
                                 WHERE d.documento_uid = ?");
@@ -465,8 +466,7 @@ function formatarData($data) {
                 </div>
             </div>
             <div>
-                <div class="signature-box">
-                    <?php echo sanitize($dados_documento['fetched_decl_resp_pa'] ?? 'DEVZGROUP'); ?><br>
+                <div class="signature-box">                    <?php echo sanitize($dados_documento['decl_resp_pa']); ?><br>
                     <strong>Responsável pela DEVZGROUP</strong>
                 </div>
             </div>
