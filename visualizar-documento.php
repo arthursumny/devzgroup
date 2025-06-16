@@ -299,7 +299,7 @@ function formatarData($data) {
         <div class="section-title">1. IDENTIFICAÇÃO DAS PARTES</div>
         
         <div class="company-info">
-            <strong>DEVZ SOLUÇÕES LTDA</strong>, pessoa jurídica de direito privado, inscrita no CNPJ sob o nº 35.115.124/0001-05, com sede à Rua Felipe Schmidt, nº 654, Centro, Joaçaba-SC, CEP 89600-000, neste ato representada na forma de seu contrato social, doravante denominada simplesmente por <strong>DEVZGROUP</strong>. Fone: (49) 3307-3150
+            <strong>DEVZ SOLUÇÕES LTDA</strong>, pessoa jurídica de direito privado, inscrita no CNPJ sob o nº 35.115.124/0001-05, com sede à Rua Felipe Schmidt, nº 654, Centro, Joaçaba-SC, CEP 89600-000, neste ato representada na forma de seu contrato social, doravante denominada simplesmente por <strong>DEVZGROUP</strong>. Fone: (49) 3523-1020
         </div>
 
         <div class="subsection-title">1.2. AGENTE INDICADOR DO NEGÓCIO</div>
@@ -462,7 +462,7 @@ function formatarData($data) {
             <div>
                 <div class="signature-box">
                     <?php echo sanitize($dados_documento['decl_resp_parceiro']); ?><br>
-                    <strong>Responsável pelo Parceiro</strong>
+                    <strong>Agente indicador do negócio</strong>
                 </div>
             </div>
             <div>                <div class="signature-box">
