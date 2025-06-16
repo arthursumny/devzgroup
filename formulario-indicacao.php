@@ -154,7 +154,7 @@ $upload_display_path = 'uploads/';
             <input type="hidden" name="documento_uid" value="<?php echo htmlspecialchars($documento_uid_param); ?>">
 
             <h2>1. IDENTIFICAÇÃO DAS PARTES</h2>
-            <p><strong>DEVZ SOLUÇÕES LTDA</strong>, pessoa jurídica de direito privado, inscrita no CNPJ sob o nº 35.115.124/0001-05, com sede à Rua Felipe Schmidt, nº 654, Centro, Joaçaba-SC, CEP 89600-000, neste ato representada na forma de seu contrato social, doravante denominada simplesmente por DEVZGROUP. Fone: (49) 3523-1020</p>
+            <p><strong>DEVZ SOLUÇÕES LTDA</strong>, pessoa jurídica de direito privado, inscrita no CNPJ sob o nº 35.115.124/0001-05, com sede à Rua Antonio Nunes Varela, nº 688, Vila Pedrini, Joaçaba-SC, CEP 89600-000, neste ato representada na forma de seu contrato social, doravante denominada simplesmente por DEVZGROUP. Fone: (49) 3523-1020</p>
             
             <h3>1.2. AGENTE INDICADOR DO NEGÓCIO</h3>
             <div class="form-grid">
