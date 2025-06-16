@@ -465,8 +465,8 @@ function formatarData($data) {
                     <strong>Responsável pelo Parceiro</strong>
                 </div>
             </div>
-            <div>
-                <div class="signature-box">                    <?php echo sanitize($dados_documento['decl_resp_pa']); ?><br>
+            <div>                <div class="signature-box">
+                    <?php echo sanitize($dados_documento['nome_parceiro_criador'] ?? 'Responsável DEVZGROUP'); ?><br>
                     <strong>Responsável pela DEVZGROUP</strong>
                 </div>
             </div>
