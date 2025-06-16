@@ -97,28 +97,28 @@ function formatarData($data) {
             font-size: 12pt;
             margin-bottom: 8px;
             text-transform: uppercase;
-        }
-          .section-title {
+        }        .section-title {
             font-weight: bold;
             font-size: 11pt;
-            margin: 15px auto 8px auto;
+            margin: 15px 0 8px 0;
             text-transform: uppercase;
             border: 1px solid #000;
-            padding: 4px;
+            padding: 4px 0;
             text-align: center;
-            width: 90%;
+            width: 100%;
             background-color: #fff;
-        }
-          .subsection-title {
+            display: block;
+        }        .subsection-title {
             font-weight: bold;
             font-size: 10pt;
-            margin: 12px auto 6px auto;
+            margin: 12px 0 6px 0;
             text-transform: uppercase;
             border: 1px solid #000;
-            padding: 3px;
+            padding: 3px 0;
             text-align: center;
-            width: 85%;
+            width: 100%;
             background-color: #fff;
+            display: block;
         }
         
         .content-grid {
@@ -414,7 +414,7 @@ function formatarData($data) {
             <thead>
                 <tr>
                     <th style="width: 60%;">Produto/Serviço</th>
-                    <th style="width: 20%;">Custo JED</th>
+                    <th style="width: 20%;">Custo PI</th>
                     <th style="width: 20%;">Venda Cliente Final</th>
                 </tr>
             </thead>
@@ -428,12 +428,26 @@ function formatarData($data) {
                 <?php endforeach; ?>
             </tbody>
         </table>
-        <?php endif; ?>
-
-        <div class="section-title">3. FORMA DE PAGAMENTO</div>
-        <div class="field-group">
-            <span class="field-label">Tipo de pagamento:</span>
-            <span class="field-value"><?php echo sanitize($dados_documento['pagamento_tipo']); ?></span>
+        <?php endif; ?>        <div class="section-title">3. FORMA DE PAGAMENTO</div>
+        <div class="field-group" style="margin: 10px 0;">
+            <div style="display: inline-block; margin-right: 20px;">
+                <span style="font-size: 10pt;">
+                    <?php $isSplit = $dados_documento['pagamento_tipo'] === 'Split'; ?>
+                    <span style="display: inline-block; width: 12px; height: 12px; border: 1px solid #000; margin-right: 5px; text-align: center; line-height: 10px;">
+                        <?php echo $isSplit ? "✓" : "&nbsp;"; ?>
+                    </span>
+                    Split
+                </span>
+            </div>
+            <div style="display: inline-block;">
+                <span style="font-size: 10pt;">
+                    <?php $isMensal = $dados_documento['pagamento_tipo'] === 'Mensal'; ?>
+                    <span style="display: inline-block; width: 12px; height: 12px; border: 1px solid #000; margin-right: 5px; text-align: center; line-height: 10px;">
+                        <?php echo $isMensal ? "✓" : "&nbsp;"; ?>
+                    </span>
+                    Mensal
+                </span>
+            </div>
         </div>
 
         <div class="section-title">4. OBSERVAÇÕES</div>

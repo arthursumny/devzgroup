@@ -237,8 +237,8 @@ $upload_display_path = 'uploads/';
     <thead>
     <tr>
     <th>Produto</th>
-    <th>Custo JED (R$) <?php if ($parceiro_pode_editar_restrito) echo '<i class="fas fa-edit edit-icon-parceiro" title="Editável pelo Parceiro"></i>'; ?></th>
-    <th>Venda Cliente Final (R$) <i class="fas fa-edit edit-icon-publico" title="Editável por você"></i></th>
+    <th>Custo PI <?php if ($parceiro_pode_editar_restrito) echo '<i class="fas fa-edit edit-icon-parceiro" title="Editável pelo Parceiro"></i>'; ?></th>
+    <th>Venda Cliente Final<i class="fas fa-edit edit-icon-publico" title="Editável por você"></i></th>
     <?php if ($parceiro_pode_editar_restrito): ?>
         <th>Ações <?php echo '<i class="fas fa-edit edit-icon-parceiro" title="Editável pelo Parceiro"></i>';?></th>
     <?php endif; ?>
