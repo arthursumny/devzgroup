@@ -98,20 +98,27 @@ function formatarData($data) {
             margin-bottom: 8px;
             text-transform: uppercase;
         }
-        
-        .section-title {
+          .section-title {
             font-weight: bold;
             font-size: 11pt;
-            margin-top: 8px;
-            margin-bottom: 4px;
+            margin: 15px auto 8px auto;
             text-transform: uppercase;
+            border: 1px solid #000;
+            padding: 4px;
+            text-align: center;
+            width: 90%;
+            background-color: #fff;
         }
-        
-        .subsection-title {
+          .subsection-title {
             font-weight: bold;
             font-size: 10pt;
-            margin-top: 6px;
-            margin-bottom: 4px;
+            margin: 12px auto 6px auto;
+            text-transform: uppercase;
+            border: 1px solid #000;
+            padding: 3px;
+            text-align: center;
+            width: 85%;
+            background-color: #fff;
         }
         
         .content-grid {
