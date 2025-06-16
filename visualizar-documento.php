@@ -440,12 +440,11 @@ function formatarData($data) {
                 </span>
             </div>
             <div style="display: inline-block;">
-                <span style="font-size: 10pt;">
-                    <?php $isMensal = $dados_documento['pagamento_tipo'] === 'Mensal'; ?>
+                <span style="font-size: 10pt;">                    <?php $isMensal = $dados_documento['pagamento_tipo'] === 'Mensal'; ?>
                     <span style="display: inline-block; width: 12px; height: 12px; border: 1px solid #000; margin-right: 5px; text-align: center; line-height: 10px;">
                         <?php echo $isMensal ? "✓" : "&nbsp;"; ?>
                     </span>
-                    Mensal
+                    Mensal (pagamento dia 25)
                 </span>
             </div>
         </div>
